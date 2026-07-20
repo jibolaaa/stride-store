@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { getProduct } from "../../../lib/products";
@@ -24,13 +25,17 @@ export default function ProductPage() {
 
   return (
     <div className="wrap product-page">
-      <div className="product-img"><ProductImage src={product.image} alt={product.name} /></div>
+      <div className="product-img">
+        <ProductImage src={product.image} alt={product.name} />
+      </div>
       <div className="product-info">
+        <p className="crumb"><Link href="/">Shop</Link> / {product.name}</p>
         {product.tag && <span className="tag inline">{product.tag}</span>}
         <h1>{product.name}</h1>
         <p className="price big">{naira(product.price_kobo)}</p>
         <p className="desc">{product.description}</p>
         <div className="qty-row">
+          <span className="qty-label">Quantity</span>
           <div className="stepper">
             <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease">−</button>
             <span>{qty}</span>
@@ -41,6 +46,11 @@ export default function ProductPage() {
           <button className="btn" onClick={addToCart}>{added ? "Added ✓" : "Add to cart"}</button>
           <button className="btn outline" onClick={() => { add(product.id, qty); router.push("/cart"); }}>Buy now</button>
         </div>
+        <ul className="perks">
+          <li>Free delivery across Lagos</li>
+          <li>Secure Paystack checkout</li>
+          <li>7-day easy returns</li>
+        </ul>
       </div>
     </div>
   );

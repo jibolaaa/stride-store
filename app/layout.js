@@ -1,9 +1,10 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Archivo, Inter } from "next/font/google";
 import { CartProvider } from "../components/CartProvider";
 import Nav from "../components/Nav";
 
-const inter = Inter({ subsets: ["latin"] });
+const display = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], variable: "--font-display" });
+const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata = {
   title: "STRIDE. | Sneakers, delivered.",
@@ -12,12 +13,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
+      <body>
         <CartProvider>
           <Nav />
           <main>{children}</main>
           <footer className="footer">
+            <div className="foot-brand">STRIDE<span>.</span></div>
             <span>STRIDE is a fictional demo store. No real products are sold.</span>
             <span>
               Custom-built by{" "}
