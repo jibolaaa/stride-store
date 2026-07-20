@@ -169,3 +169,71 @@ main { min-height: 70vh; }
   html { scroll-behavior: auto; }
 }
 .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* ---------- completeness pass additions ---------- */
+
+/* rating */
+.rating { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); font-weight: 600; margin-top: 8px; }
+.rating .star { color: #e8a33d; }
+.rating .rcount { color: var(--faint); font-weight: 400; font-size: 13px; }
+.rating.small { font-size: 12.5px; margin-top: 4px; }
+.rating.small .rcount { font-size: 12px; }
+
+/* shop tools: chips + search */
+.shop-tools { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 9px 20px; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--grey); transition: all .2s; }
+.chip:hover { color: var(--ink); border-color: var(--grey); }
+.chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.search { border: 1px solid var(--line); border-radius: 999px; padding: 11px 20px; font-size: 14.5px; font-family: var(--font-body); outline: none; min-width: 210px; transition: border-color .2s, box-shadow .2s; }
+.search:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(14,14,14,.06); }
+
+/* sizes */
+.size-block { margin-top: 26px; }
+.sizes { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 10px; }
+.size { min-width: 52px; height: 46px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14.5px; font-weight: 700; color: var(--ink); transition: all .18s; }
+.size:hover { border-color: var(--ink); }
+.size.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+/* cart line meta */
+.cart-mid .meta { color: var(--faint); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; font-weight: 600; }
+
+/* related products */
+.related { padding: 20px 22px 100px; }
+.related h2 { font-size: clamp(22px, 3.4vw, 32px); font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; margin-bottom: 26px; }
+.related-grid { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 800px) { .related-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* generic content pages (about/help) */
+.page { padding: 70px 22px 100px; max-width: 780px; }
+.page-title { font-size: clamp(42px, 7vw, 84px); font-weight: 900; text-transform: uppercase; letter-spacing: -.03em; line-height: .95; margin-top: 12px; }
+.page-body { margin-top: 34px; display: grid; gap: 20px; }
+.page-body p { color: var(--grey); font-size: 17px; max-width: 58ch; }
+.page-body .fine { font-size: 14px; color: var(--faint); }
+.page-body .btn { justify-self: start; margin-top: 10px; }
+
+/* faq */
+.faq { margin-top: 40px; border-top: 1px solid var(--line); }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-item summary { list-style: none; cursor: pointer; padding: 20px 0; font-weight: 700; font-size: 16.5px; display: flex; justify-content: space-between; align-items: center; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; font-size: 22px; color: var(--faint); transition: transform .25s; }
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { color: var(--grey); padding-bottom: 20px; max-width: 60ch; }
+
+.help-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+.help-card { background: var(--soft); border-radius: 18px; padding: 24px; }
+.help-card h3 { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.help-card p { color: var(--grey); font-size: 14.5px; margin-top: 8px; }
+.help-card a { color: var(--ink); font-weight: 600; border-bottom: 1px solid var(--green); }
+@media (max-width: 720px) { .help-cards { grid-template-columns: 1fr; } }
+
+/* rich footer */
+.footer { border-top: 1px solid var(--line); margin-top: 20px; padding: 54px 0 30px; color: var(--faint); font-size: 14px; display: block; text-align: left; }
+.foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 30px; padding-bottom: 40px; }
+.brand-col p { margin-top: 12px; max-width: 28ch; }
+.foot-col b { display: block; font-size: 11.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); margin-bottom: 14px; }
+.foot-col a { display: block; padding: 4px 0; color: var(--grey); border: none; transition: color .2s; }
+.foot-col a:hover { color: var(--ink); }
+.foot-base { border-top: 1px solid var(--line); padding-top: 22px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12.5px; }
+@media (max-width: 760px) { .foot-grid { grid-template-columns: 1fr 1fr; } }

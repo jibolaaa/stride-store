@@ -21,21 +21,22 @@ export default function CartPage() {
     <div className="wrap cart-page">
       <h1>Your cart</h1>
       <div className="cart-list">
-        {items.map(({ id, qty }) => {
+        {items.map(({ id, size, qty }) => {
           const p = getProduct(id);
           if (!p) return null;
           return (
-            <div className="cart-row" key={id}>
+            <div className="cart-row" key={`${id}-${size}`}>
               <div className="cart-thumb"><ProductImage src={p.image} alt={p.name} /></div>
               <div className="cart-mid">
                 <h3>{p.name}</h3>
+                <p className="meta">{size ? `Size EU ${size}` : "One size"}</p>
                 <p className="price">{naira(p.price_kobo)}</p>
-                <button className="link-btn" onClick={() => remove(id)}>Remove</button>
+                <button className="link-btn" onClick={() => remove(id, size)}>Remove</button>
               </div>
               <div className="stepper small">
-                <button onClick={() => setQty(id, qty - 1)} aria-label="Decrease">−</button>
+                <button onClick={() => setQty(id, size, qty - 1)} aria-label="Decrease">−</button>
                 <span>{qty}</span>
-                <button onClick={() => setQty(id, qty + 1)} aria-label="Increase">+</button>
+                <button onClick={() => setQty(id, size, qty + 1)} aria-label="Increase">+</button>
               </div>
             </div>
           );

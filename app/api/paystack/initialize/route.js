@@ -23,20 +23,19 @@ export async function POST(req) {
   }
 
   // SECURITY: recompute the amount on the server from our own catalog.
-  // The browser only sends IDs and quantities. If we trusted a total
-  // from the client, anyone could pay N1 for everything.
+  // The browser only sends IDs, sizes and quantities. If we trusted a
+  // total from the client, anyone could pay N1 for everything.
   let amount_kobo = 0;
   const lines = [];
-  for (const { id, qty } of items) {
+  for (const { id, size, qty } of items) {
     const p = getProduct(id);
-    const q = Math.max(1, Math.min(20, parseInt(qty, 10) || 1));
     if (!p) return NextResponse.json({ error: `Unknown product: ${id}` }, { status: 400 });
+    const q = Math.max(1, Math.min(20, parseInt(qty, 10) || 1));
+    const s = size != null && p.sizes?.includes(Number(size)) ? ` (EU ${size})` : "";
     amount_kobo += p.price_kobo * q;
-    lines.push(`${p.name} x${q}`);
+    lines.push(`${p.name}${s} x${q}`);
   }
 
-  // Build the callback URL from the request itself, so it works on any
-  // deployment (preview or production) without extra configuration.
   const origin = new URL(req.url).origin;
 
   const psRes = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -47,7 +46,7 @@ export async function POST(req) {
     },
     body: JSON.stringify({
       email: customer.email,
-      amount: amount_kobo,               // Paystack expects kobo. Integer. Exactly why we store kobo.
+      amount: amount_kobo,
       currency: "NGN",
       callback_url: `${origin}/success`,
       metadata: {

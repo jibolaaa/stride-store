@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { products } from "../lib/products";
-import ProductCard from "../components/ProductCard";
 import Reveal from "../components/Reveal";
 import ProductImage from "../components/ProductImage";
+import ShopGrid from "../components/ShopGrid";
 
 export default function Home() {
   const hero = products.find(p => p.id === "velocity-runner") || products[0];
@@ -29,9 +29,9 @@ export default function Home() {
       <div className="marquee" aria-hidden="true">
         <div className="track">
           <span>Free Lagos delivery</span><span>·</span><span>Secure Paystack checkout</span><span>·</span>
-          <span>New drops weekly</span><span>·</span><span>Easy returns</span><span>·</span>
+          <span>New drops weekly</span><span>·</span><span>7-day returns</span><span>·</span>
           <span>Free Lagos delivery</span><span>·</span><span>Secure Paystack checkout</span><span>·</span>
-          <span>New drops weekly</span><span>·</span><span>Easy returns</span><span>·</span>
+          <span>New drops weekly</span><span>·</span><span>7-day returns</span><span>·</span>
         </div>
       </div>
 
@@ -40,13 +40,7 @@ export default function Home() {
           <Reveal><h2>The lineup</h2></Reveal>
           <Reveal delay={80}><p className="count">{products.length} styles</p></Reveal>
         </div>
-        <div className="grid">
-          {products.map((p, i) => (
-            <Reveal key={p.id} delay={(i % 3) * 70} className={i === 0 ? "featured" : ""}>
-              <ProductCard product={p} featured={i === 0} />
-            </Reveal>
-          ))}
-        </div>
+        <ShopGrid />
       </section>
     </>
   );

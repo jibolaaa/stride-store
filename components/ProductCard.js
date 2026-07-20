@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { naira } from "../lib/format";
 import ProductImage from "./ProductImage";
+import Rating from "./Rating";
 
 export default function ProductCard({ product, featured = false }) {
   return (
@@ -13,6 +14,7 @@ export default function ProductCard({ product, featured = false }) {
       <div className="card-body">
         <div>
           <h3>{product.name}</h3>
+          <Rating value={product.rating} reviews={product.reviews} small />
           <p className="price">{naira(product.price_kobo)}</p>
         </div>
         <span className="arrow" aria-hidden="true">→</span>
