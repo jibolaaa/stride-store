@@ -1,69 +1,71 @@
-// SERVER-SIDE payment start. This runs on Vercel, not the browser,
+// Starts a payment. This runs on the server (Vercel), not in the browser,
 // so the PAYSTACK_SECRET_KEY stays hidden.
 import { NextResponse } from "next/server";
 import { getProduct } from "../../../../lib/products";
+import { checkCustomer } from "../../../../lib/validate";
 
 export async function POST(req) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) {
-    return NextResponse.json(
-      { error: "Payments are not configured yet (missing PAYSTACK_SECRET_KEY)." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Payments are switched off on this copy of the store." }, { status: 500 });
   }
 
   let body;
   try { body = await req.json(); } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    return NextResponse.json({ error: "The request was malformed. Refresh the page and try again." }, { status: 400 });
   }
 
   const { customer, items } = body || {};
-  if (!customer?.email || !Array.isArray(items) || items.length === 0) {
-    return NextResponse.json({ error: "Missing customer email or cart items." }, { status: 400 });
+  if (!Array.isArray(items) || items.length === 0 || items.length > 30) {
+    return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
   }
 
-  // SECURITY: recompute the amount on the server from our own catalog.
-  // The browser only sends IDs, sizes and quantities. If we trusted a
-  // total from the client, anyone could pay N1 for everything.
+  // Check the form again here: the browser's checks can be skipped.
+  const problems = checkCustomer(customer);
+  if (Object.keys(problems).length) {
+    return NextResponse.json({ error: Object.values(problems)[0], fields: problems }, { status: 400 });
+  }
+
+  // SECURITY: work out the amount from our own price list. The browser only
+  // sends ids, sizes and quantities. If we trusted a total from the
+  // browser, anyone could pay N1 for everything.
   let amount_kobo = 0;
   const lines = [];
   for (const { id, size, qty } of items) {
     const p = getProduct(id);
-    if (!p) return NextResponse.json({ error: `Unknown product: ${id}` }, { status: 400 });
-    const q = Math.max(1, Math.min(20, parseInt(qty, 10) || 1));
-    const s = size != null && p.sizes?.includes(Number(size)) ? ` (EU ${size})` : "";
+    if (!p) {
+      return NextResponse.json({ error: "Something in your cart is no longer sold. Remove it and try again." }, { status: 400 });
+    }
+    if (!p.sizes.includes(Number(size))) {
+      return NextResponse.json({ error: `${p.name} isn't available in size ${size}. Choose another size.` }, { status: 400 });
+    }
+    const q = Math.max(1, Math.min(10, parseInt(qty, 10) || 1));
     amount_kobo += p.price_kobo * q;
-    lines.push(`${p.name}${s} x${q}`);
+    lines.push(`${p.name} (EU ${size}) x${q}`);
   }
 
   const origin = new URL(req.url).origin;
 
   const psRes = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      "Content-Type": "application/json"
-    },
+    headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: customer.email,
+      email: customer.email.trim(),
       amount: amount_kobo,
       currency: "NGN",
       callback_url: `${origin}/success`,
       metadata: {
-        customer_name: customer.name,
-        phone: customer.phone,
-        address: customer.address,
+        customer_name: customer.name.trim(),
+        phone: customer.phone.trim(),
+        address: customer.address.trim(),
         order_lines: lines.join(", ")
       }
     })
   });
 
-  const data = await psRes.json();
+  const data = await psRes.json().catch(() => null);
   if (!psRes.ok || !data?.status) {
-    return NextResponse.json(
-      { error: data?.message || "Paystack rejected the request." },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Paystack couldn't start the payment. Try again in a minute." }, { status: 502 });
   }
 
   return NextResponse.json({

@@ -16,8 +16,10 @@ export function CartProvider({ children }) {
       const saved = localStorage.getItem("stride_cart");
       if (saved) {
         const parsed = JSON.parse(saved);
-        // normalize old entries that had no size
-        setItems(parsed.map(i => ({ id: i.id, size: i.size ?? null, qty: i.qty })));
+        // Drop anything that no longer exists in the catalogue.
+        setItems(parsed
+          .filter(i => getProduct(i.id))
+          .map(i => ({ id: i.id, size: i.size ?? null, qty: Math.max(1, Math.min(10, i.qty | 0)) })));
       }
     } catch {}
     setLoaded(true);
@@ -33,7 +35,7 @@ export function CartProvider({ children }) {
     setItems(prev => {
       const line = { id, size, qty };
       const found = prev.find(i => sameLine(i, line));
-      if (found) return prev.map(i => sameLine(i, line) ? { ...i, qty: i.qty + qty } : i);
+      if (found) return prev.map(i => sameLine(i, line) ? { ...i, qty: Math.min(10, i.qty + qty) } : i);
       return [...prev, line];
     });
 
@@ -52,7 +54,7 @@ export function CartProvider({ children }) {
   }, 0);
 
   return (
-    <CartContext.Provider value={{ items, add, setQty, remove, clear, count, subtotal_kobo }}>
+    <CartContext.Provider value={{ items, add, setQty, remove, clear, count, subtotal_kobo, loaded }}>
       {children}
     </CartContext.Provider>
   );

@@ -2,11 +2,10 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="wrap center-col">
-      <p className="eyebrow">404</p>
-      <h1>Lost your<br />footing?</h1>
-      <p className="sub">This page does not exist. The sneakers, however, very much do.</p>
-      <Link className="btn" href="/">Back to the shop</Link>
+    <div className="wrap page-narrow empty-state">
+      <h1>This page doesn't exist</h1>
+      <p>The link may be old, or the product may have been removed.</p>
+      <Link className="btn" href="/#shop">Shop sneakers</Link>
     </div>
   );
 }
