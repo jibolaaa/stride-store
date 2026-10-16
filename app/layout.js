@@ -1,17 +1,22 @@
 import "./globals.css";
-import Link from "next/link";
 import localFont from "next/font/local";
+import { UIProvider } from "../components/UIProvider";
 import { CartProvider } from "../components/CartProvider";
+import AnnouncementBar from "../components/AnnouncementBar";
 import Header from "../components/Header";
-import LookSwitch from "../components/LookSwitch";
+import Footer from "../components/Footer";
+import MenuDrawer from "../components/MenuDrawer";
+import SearchOverlay from "../components/SearchOverlay";
+import CartDrawer from "../components/CartDrawer";
+import QuickAddSheet from "../components/QuickAddSheet";
 
 // Both fonts are served from this site, so nothing waits on Google Fonts.
-const instrument = localFont({
-  src: "./fonts/instrument-sans.woff2",
-  variable: "--font-instrument",
-  weight: "400 700",
-  display: "swap",
-  declarations: [{ prop: "font-stretch", value: "75% 100%" }]
+// Jost has a ₦ sign added to it (see README).
+const jost = localFont({
+  src: "./fonts/jost.woff2",
+  variable: "--font-jost",
+  weight: "100 900",
+  display: "swap"
 });
 const archivo = localFont({
   src: "./fonts/archivo.woff2",
@@ -26,52 +31,31 @@ export const metadata = {
   description: "STRIDE is a demo sneaker store with a cart, checkout and Paystack payments. Built by Ibrahim Raji."
 };
 
-export const viewport = { themeColor: "#090909" };
+export const viewport = { themeColor: "#ffffff" };
 
-// Preview only: lets Ibrahim compare the two looks with ?look=a or ?look=b.
-const pickLook = `(function(){try{var q=new URLSearchParams(location.search).get("look");var l=q||localStorage.getItem("stride_look")||"a";if(q)localStorage.setItem("stride_look",q);document.documentElement.dataset.look=l}catch(e){}})()`;
+// Runs before the page paints, so a saved dark theme never flashes white.
+const themeInit = `(function(){try{var t=localStorage.getItem("stride_theme");if(t!=="dark")t="light";document.documentElement.dataset.theme=t}catch(e){}})()`;
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-look="a" className={`${instrument.variable} ${archivo.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="light" className={`${jost.variable} ${archivo.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: pickLook }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
-        <CartProvider>
-          <LookSwitch />
-          <Header />
-          <main>{children}</main>
-          <footer className="footer">
-            <div className="wrap foot-grid">
-              <div className="foot-brand-col">
-                <Link href="/" className="logo">STRIDE</Link>
-                <p>Sneakers delivered across Lagos. Pay by card, transfer or USSD through Paystack.</p>
-              </div>
-              <nav className="foot-col" aria-label="Shop">
-                <b>Shop</b>
-                <Link href="/#shop">All sneakers</Link>
-                <Link href="/?filter=New#shop">New in</Link>
-                <Link href="/?filter=Limited#shop">Limited</Link>
-              </nav>
-              <nav className="foot-col" aria-label="Help">
-                <b>Help</b>
-                <Link href="/help">Delivery and returns</Link>
-                <Link href="/help">Questions</Link>
-                <a href="https://wa.me/2348105432993?text=Hi%20STRIDE%2C%20I%20have%20a%20question." target="_blank" rel="noopener">WhatsApp us</a>
-              </nav>
-              <nav className="foot-col" aria-label="About">
-                <b>About</b>
-                <Link href="/about">Our story</Link>
-                <a href="https://ibrahimraji.vercel.app" target="_blank" rel="noopener">Built by Ibrahim Raji</a>
-              </nav>
-            </div>
-            <div className="wrap foot-base">
-              <span>STRIDE is a demo store. No real products are sold and no real money is taken.</span>
-              <span>Next.js and Paystack</span>
-            </div>
-          </footer>
-        </CartProvider>
+        <a href="#main" className="skip">Skip to content</a>
+        <UIProvider>
+          <CartProvider>
+            <AnnouncementBar />
+            <Header />
+            <main id="main">{children}</main>
+            <Footer />
+            <MenuDrawer />
+            <SearchOverlay />
+            <CartDrawer />
+            <QuickAddSheet />
+          </CartProvider>
+        </UIProvider>
       </body>
     </html>
   );

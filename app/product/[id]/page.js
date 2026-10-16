@@ -6,14 +6,15 @@ import ProductView from "../../../components/ProductView";
 export function generateStaticParams() {
   return products.map(p => ({ id: p.id }));
 }
+export const dynamicParams = false;
 
 export function generateMetadata({ params }) {
   const p = getProduct(params.id);
   if (!p) return {};
   return {
-    title: p.name,
-    description: `${p.name}, ${naira(p.price_kobo)}. ${p.description}`,
-    openGraph: { images: [p.image] }
+    title: `${p.name}, ${p.colour}`,
+    description: `${p.name} in ${p.colour.toLowerCase()}, ${naira(p.price_kobo)}. ${p.description}`,
+    openGraph: { images: [p.images[0]] }
   };
 }
 

@@ -1,25 +1,57 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useCart } from "./CartProvider";
+import { useUI } from "./UIProvider";
+import ThemeToggle from "./ThemeToggle";
+import { BagIcon, MenuIcon, SearchIcon } from "./Icons";
+
+// Shown under the logo on bigger screens. Phones use the menu drawer.
+const NAV = [
+  ["New in", "/collections/new-in"],
+  ["Men", "/collections/men"],
+  ["Women", "/collections/women"],
+  ["Kids", "/collections/kids"],
+  ["Running", "/collections/running"],
+  ["Basketball", "/collections/basketball"],
+  ["Sale", "/collections/sale"]
+];
 
 export default function Header() {
-  const { count } = useCart();
+  const { count, loaded } = useCart();
+  const { show } = useUI();
   const path = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 8);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+
   return (
-    <header className="header">
+    <header className={`header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-in">
+        <div className="header-side">
+          <button type="button" className="icon-btn" onClick={() => show("menu")} aria-label="Open menu"><MenuIcon /></button>
+          <ThemeToggle />
+        </div>
         <Link href="/" className="logo" aria-label="STRIDE home">STRIDE</Link>
-        <nav className="header-nav" aria-label="Main">
-          <Link href="/#shop" className={path === "/" ? "on" : ""}>Shop</Link>
-          <Link href="/help" className={path === "/help" ? "on" : ""}>Help</Link>
-          <Link href="/cart" className="cart-btn" aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`}>
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
-            <span>Cart</span>
-            {count > 0 && <span className="count">{count}</span>}
-          </Link>
-        </nav>
+        <div className="header-side end">
+          <button type="button" className="icon-btn" onClick={() => show("search")} aria-label="Search"><SearchIcon /></button>
+          <button type="button" className="icon-btn bag" onClick={() => show("cart")} aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`}>
+            <BagIcon />
+            {loaded && count > 0 && <span className="bag-count" aria-hidden="true">{count}</span>}
+          </button>
+        </div>
       </div>
+      <nav className="header-nav" aria-label="Main">
+        {NAV.map(([label, href]) => (
+          <Link key={href} href={href} className={label === "Sale" ? "sale" : undefined} aria-current={path === href ? "page" : undefined}>{label}</Link>
+        ))}
+      </nav>
     </header>
   );
 }

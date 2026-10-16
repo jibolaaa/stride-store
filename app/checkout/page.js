@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "../../components/CartProvider";
+import ProductImage from "../../components/ProductImage";
+import { LockIcon } from "../../components/Icons";
 import { getProduct } from "../../lib/products";
 import { naira } from "../../lib/format";
 import { checkCustomer } from "../../lib/validate";
@@ -14,7 +16,7 @@ const FIELDS = [
 ];
 
 export default function CheckoutPage() {
-  const { items, count, subtotal_kobo, loaded } = useCart();
+  const { items, count, subtotal_kobo, delivery_kobo, total_kobo, loaded } = useCart();
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "" });
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
@@ -23,14 +25,14 @@ export default function CheckoutPage() {
   const errors = checkCustomer(form);
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  if (!loaded) return <div className="wrap page-narrow" aria-busy="true" />;
+  if (!loaded) return <div className="wrap page" aria-busy="true" />;
 
   if (!items.length) {
     return (
-      <div className="wrap page-narrow empty-state">
-        <h1>Nothing to check out</h1>
+      <div className="wrap page empty-state">
+        <h1 className="page-title">Nothing to check out</h1>
         <p>Your cart is empty. Add a pair first.</p>
-        <Link className="btn" href="/#shop">Shop sneakers</Link>
+        <Link className="btn" href="/collections/all">Shop sneakers</Link>
       </div>
     );
   }
@@ -50,9 +52,9 @@ export default function CheckoutPage() {
       const res = await fetch("/api/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer: form, items })
+        body: JSON.stringify({ customer: form, items: items.map(({ id, size, qty }) => ({ id, size, qty })) })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Payment could not start. Try again.");
       window.location.href = data.authorization_url;
     } catch (err) {
@@ -62,9 +64,12 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="wrap checkout">
-      <h1>Checkout</h1>
-      <form onSubmit={pay} className="checkout-grid" noValidate>
+    <div className="wrap page">
+      <div className="page-head">
+        <p className="kicker">Delivery in Lagos</p>
+        <h1 className="page-title">Checkout</h1>
+      </div>
+      <form onSubmit={pay} className="checkout-layout" noValidate>
         <fieldset className="fields" disabled={loading}>
           <legend>Delivery details</legend>
           {FIELDS.map(f => {
@@ -91,26 +96,34 @@ export default function CheckoutPage() {
         </fieldset>
 
         <aside className="summary" aria-labelledby="sum-title">
-          <h2 id="sum-title">Your order <span>{count} {count === 1 ? "item" : "items"}</span></h2>
+          <h2 id="sum-title" className="summary-title">Your order <span>({count})</span></h2>
           <ul className="sum-lines">
             {items.map(({ id, size, qty }) => {
               const p = getProduct(id);
               if (!p) return null;
               return (
                 <li key={`${id}-${size}`}>
-                  <span>{p.name}<small>Size {size}, quantity {qty}</small></span>
-                  <span>{naira(p.price_kobo * qty)}</span>
+                  <span className="sum-thumb">
+                    <ProductImage src={p.images[0]} alt="" />
+                    <span className="sum-qty" aria-hidden="true">{qty}</span>
+                  </span>
+                  <span className="sum-text">
+                    <span className="sum-name">{p.name}</span>
+                    <small>{p.colour}, size {size}, quantity {qty}</small>
+                  </span>
+                  <span className="sum-price">{naira(p.price_kobo * qty)}</span>
                 </li>
               );
             })}
           </ul>
-          <div className="tot-row"><span>Delivery in Lagos</span><span>Free</span></div>
-          <div className="tot-row grand"><span>Total</span><b>{naira(subtotal_kobo)}</b></div>
-          <button className="btn full pay-btn" disabled={loading}>
-            {loading ? "Opening Paystack…" : `Pay ${naira(subtotal_kobo)}`}
+          <div className="tot-row"><span>Subtotal</span><span>{naira(subtotal_kobo)}</span></div>
+          <div className="tot-row"><span>Delivery in Lagos</span><span>{delivery_kobo ? naira(delivery_kobo) : "Free"}</span></div>
+          <div className="tot-row grand"><span>Total</span><b>{naira(total_kobo)}</b></div>
+          <button className="btn full" disabled={loading}>
+            <LockIcon />{loading ? "Opening Paystack…" : `Pay ${naira(total_kobo)}`}
           </button>
           {serverError && <p className="form-error" role="alert">{serverError}</p>}
-          <p className="note center">You will pay on Paystack's secure page. This is a demo, so use Paystack's test card and no real money moves.</p>
+          <p className="note">You'll pay on Paystack's secure page. This is a demo, so use Paystack's test card and no real money moves.</p>
         </aside>
       </form>
     </div>

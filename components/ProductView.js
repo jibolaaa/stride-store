@@ -2,138 +2,212 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ALL_SIZES, getProduct, products } from "../lib/products";
-import { naira } from "../lib/format";
+import { genderLabel, getProduct, inStock, isSoldOut, onSale, products, sizeList } from "../lib/products";
+import { DELIVERY_FEE_KOBO, FREE_DELIVERY_FROM_KOBO } from "../lib/pricing";
+import { naira, nairaWhole } from "../lib/format";
 import { useCart } from "./CartProvider";
+import { useUI } from "./UIProvider";
 import ProductImage from "./ProductImage";
-import ProductCard from "./ProductCard";
-import Rating from "./Rating";
+import ProductRow from "./ProductRow";
+import { Price, badgeFor } from "./ProductCard";
+import Stars from "./Stars";
+import { ColourPicker } from "./Swatches";
+import SizeGuide from "./SizeGuide";
+import { ChevronDown, MinusIcon, PlusIcon, ReturnIcon, RulerIcon, TruckIcon } from "./Icons";
+
+// Photos you swipe on a phone; on bigger screens thumbnails sit underneath.
+function Gallery({ product }) {
+  const track = useRef(null);
+  const [active, setActive] = useState(0);
+  const imgs = product.images;
+
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    el.scrollTo({ left: 0 });
+    setActive(0);
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(Number(e.target.dataset.i)); }), { root: el, threshold: .6 });
+    el.querySelectorAll(".gallery-slide").forEach(s => io.observe(s));
+    return () => io.disconnect();
+  }, [product.id]);
+
+  const goTo = (i) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: "smooth" });
+  const badge = badgeFor(product);
+
+  return (
+    <div className="gallery">
+      <div className="gallery-track" ref={track} aria-label={`${product.name} photos`} tabIndex={imgs.length > 1 ? 0 : undefined}>
+        {imgs.map((src, i) => (
+          <div className="gallery-slide" key={src} data-i={i}>
+            <ProductImage src={src} alt={i === 0 ? `${product.name} in ${product.colour.toLowerCase()}` : `${product.name}, photo ${i + 1}`} priority={i === 0} />
+          </div>
+        ))}
+      </div>
+      {badge && <span className={`badge ${badge.kind}`}>{badge.text}</span>}
+      {imgs.length > 1 && (
+        <>
+          <div className="gallery-dots">
+            {imgs.map((_, i) => <button key={i} type="button" className={i === active ? "on" : ""} onClick={() => goTo(i)} aria-label={`Photo ${i + 1} of ${imgs.length}`} aria-current={i === active ? "true" : undefined} />)}
+          </div>
+          <div className="gallery-thumbs">
+            {imgs.map((src, i) => (
+              <button key={src} type="button" className={i === active ? "on" : ""} onClick={() => goTo(i)} aria-label={`Show photo ${i + 1}`}>
+                <ProductImage src={src} alt="" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function ProductView({ id }) {
   const product = getProduct(id);
   const router = useRouter();
   const { add } = useCart();
-  const [qty, setQty] = useState(1);
+  const { show } = useUI();
   const [size, setSize] = useState(null);
+  const [qty, setQty] = useState(1);
   const [sizeError, setSizeError] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [barVisible, setBarVisible] = useState(false);
   const sizesRef = useRef(null);
-  const timer = useRef(null);
+  const buyRef = useRef(null);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  // Switching colour brings the size along in the address (?size=42).
+  // Keep it if this colour has that size in stock.
+  useEffect(() => {
+    const s = Number(new URLSearchParams(window.location.search).get("size"));
+    setSize(s && inStock(getProduct(id), s) ? s : null);
+    setQty(1);
+    setSizeError(false);
+  }, [id]);
 
-  const related = products.filter(p => p.id !== product.id).slice(0, 4);
+  // The bottom bar appears once the main Add to cart button has scrolled away.
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) return;
+    // The huge bottom margin means "below the screen" still counts as in view,
+    // so the bar only shows once the button has gone off the top, even after a fast fling.
+    const io = new IntersectionObserver(([e]) => setBarVisible(!e.isIntersecting), { rootMargin: "0px 0px 100000px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [id]);
 
+  const soldOut = isSoldOut(product);
+  const left = size ? product.sizes[size] : null;
+  const maxQty = Math.min(left ?? 10, 10);
+  const related = products
+    .filter(p => p.id !== product.id && (!product.family || p.family !== product.family))
+    .filter(p => (p.type === product.type || p.gender === product.gender) && !isSoldOut(p))
+    .slice(0, 8);
+
+  const pickSize = (s) => { setSize(s); setSizeError(false); setQty(q => Math.min(q, product.sizes[s])); };
   const needSize = () => {
     if (size) return false;
     setSizeError(true);
     sizesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    sizesRef.current?.querySelector("button")?.focus({ preventScroll: true });
     return true;
   };
-
-  const addToCart = () => {
-    if (needSize()) return;
-    add(product.id, size, qty);
-    setToast(`${product.name}, size ${size}${qty > 1 ? `, ×${qty}` : ""}`);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(null), 4000);
-  };
-
-  const buyNow = () => {
-    if (needSize()) return;
-    add(product.id, size, qty);
-    router.push("/checkout");
-  };
+  const addToCart = () => { if (needSize()) return; add(product.id, size, qty); show("cart"); };
+  const buyNow = () => { if (needSize()) return; add(product.id, size, qty); router.push("/checkout"); };
 
   return (
     <>
-      <div className="wrap product">
-        <div className="product-img">
-          <ProductImage src={product.image} alt={product.name} priority />
-          {product.tag && <span className="tag">{product.tag}</span>}
-        </div>
+      <nav className="crumbs wrap" aria-label="Breadcrumb">
+        <Link href="/">Home</Link><span aria-hidden="true">/</span>
+        <Link href={`/collections/${product.gender === "unisex" ? "all" : product.gender}`}>{product.gender === "unisex" ? "All sneakers" : genderLabel[product.gender]}</Link><span aria-hidden="true">/</span>
+        <span aria-current="page">{product.name}</span>
+      </nav>
 
-        <div className="product-info">
-          <p className="crumb"><Link href="/#shop">All sneakers</Link><span aria-hidden="true"> / </span>{product.name}</p>
-          <div className="label product-label">
-            <div className="label-row">
-              <h1 className="name">{product.name}</h1>
-              <span className="code">{product.code}</span>
-            </div>
-            <div className="label-row">
-              <span className="price">{naira(product.price_kobo)}</span>
-              <Rating value={product.rating} reviews={product.reviews} />
-            </div>
-          </div>
-          <p className="desc">{product.description}</p>
+      <div className="pdp wrap">
+        <Gallery product={product} />
 
-          <fieldset className="sizes-block" ref={sizesRef}>
-            <legend>Choose your size <span>(EU)</span></legend>
-            <div className="sizes">
-              {ALL_SIZES.map(s => {
-                const inStock = product.sizes.includes(s);
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`size ${size === s ? "on" : ""}`}
-                    disabled={!inStock}
-                    aria-pressed={size === s}
-                    aria-label={inStock ? `Size ${s}` : `Size ${s}, sold out`}
-                    onClick={() => { setSize(s); setSizeError(false); }}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-            {sizeError
-              ? <p className="field-error" role="alert">Choose a size to continue.</p>
-              : <p className="note">Greyed-out sizes are sold out.</p>}
-          </fieldset>
-
-          <div className="qty-row">
-            <span className="qty-label" id="qty-label">Quantity</span>
-            <div className="stepper" role="group" aria-labelledby="qty-label">
-              <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="One less" disabled={qty <= 1}>−</button>
-              <span aria-live="polite">{qty}</span>
-              <button type="button" onClick={() => setQty(q => Math.min(10, q + 1))} aria-label="One more" disabled={qty >= 10}>+</button>
-            </div>
+        <div className="pdp-info">
+          <div className="pdp-head">
+            <p className="brand-line">{genderLabel[product.gender]}</p>
+            <h1 className="pdp-title">{product.name}</h1>
+            <Price product={product} className="pdp-price" />
+            {onSale(product) && <p className="save">You save {naira(product.compare_kobo - product.price_kobo)}</p>}
+            {product.rating != null && <Stars value={product.rating} reviews={product.reviews} showCount />}
           </div>
 
-          <div className="buy">
-            <div className="buy-price">
-              <b>{naira(product.price_kobo * qty)}</b>
-              <span>{size ? `Size ${size}` : "No size chosen"}</span>
+          <ColourPicker product={product} size={size} />
+
+          <div className="size-pick" role="group" aria-labelledby="size-label" ref={sizesRef}>
+            <div className="size-head">
+              <p className="opt-label" id="size-label">Size (EU){size ? <span>: {size}</span> : null}</p>
+              <button type="button" className="text-btn" onClick={() => setGuideOpen(true)}><RulerIcon /> Size guide</button>
             </div>
-            <button className="btn" onClick={addToCart}>Add to cart</button>
-            <button className="btn ghost buy-now" onClick={buyNow}>Buy now</button>
+            <div className="size-grid">
+              {sizeList(product).map(s => (
+                <button key={s} type="button" className={`size ${size === s ? "on" : ""}`} disabled={!inStock(product, s)}
+                  aria-pressed={size === s} aria-label={inStock(product, s) ? `Size ${s}` : `Size ${s}, sold out`}
+                  onClick={() => pickSize(s)}>{s}</button>
+              ))}
+            </div>
+            {sizeError && <p className="field-error" role="alert">Choose a size to continue.</p>}
+            {!sizeError && left != null && left <= 2 && <p className="low-stock">Only {left} left in size {size}</p>}
           </div>
 
-          <ul className="perks">
-            <li>Free delivery anywhere in Lagos, 1 to 2 working days</li>
-            <li>Pay by card, transfer or USSD through Paystack</li>
-            <li>Return unworn pairs within 7 days</li>
+          {!soldOut && (
+            <div className="qty-row">
+              <span className="opt-label" id="qty-label">Quantity</span>
+              <div className="qty" role="group" aria-labelledby="qty-label">
+                <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="One less" disabled={qty <= 1}><MinusIcon /></button>
+                <span aria-live="polite">{qty}</span>
+                <button type="button" onClick={() => setQty(q => Math.min(maxQty, q + 1))} aria-label="One more" disabled={qty >= maxQty}><PlusIcon /></button>
+              </div>
+            </div>
+          )}
+
+          <div className="buy-actions" ref={buyRef}>
+            <button type="button" className="btn full" onClick={addToCart} disabled={soldOut}>{soldOut ? "Sold out" : "Add to cart"}</button>
+            {!soldOut && <button type="button" className="btn outline full" onClick={buyNow}>Buy it now</button>}
+          </div>
+
+          <ul className="pdp-perks">
+            <li><TruckIcon /><span>Delivered in Lagos in 1 to 2 working days. {nairaWhole(DELIVERY_FEE_KOBO)}, or free on orders from {nairaWhole(FREE_DELIVERY_FROM_KOBO)}.</span></li>
+            <li><ReturnIcon /><span>Free returns within 7 days on unworn pairs.</span></li>
           </ul>
+
+          <div className="accordion">
+            <details open>
+              <summary>Description<ChevronDown /></summary>
+              <div className="acc-body">
+                <p>{product.description}</p>
+                <ul>{product.details.map(d => <li key={d}>{d}</li>)}</ul>
+              </div>
+            </details>
+            <details>
+              <summary>Size and fit<ChevronDown /></summary>
+              <div className="acc-body">
+                <p>{product.gender === "kids" ? "Kids sizes run from EU 28 to 35. Leave about a thumb's width at the toe for growing feet." : "True to size. If you're between sizes, go up one."}</p>
+                <button type="button" className="text-btn" onClick={() => setGuideOpen(true)}>Open the size guide</button>
+              </div>
+            </details>
+            <details>
+              <summary>Delivery and returns<ChevronDown /></summary>
+              <div className="acc-body">
+                <p>Delivery anywhere in Lagos costs {nairaWhole(DELIVERY_FEE_KOBO)} and is free on orders from {nairaWhole(FREE_DELIVERY_FROM_KOBO)}. The rider calls before arriving. Return unworn pairs in the box within 7 days for a full refund.</p>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 
-      <section className="wrap related" aria-labelledby="related-title">
-        <h2 id="related-title">You might also like</h2>
-        <div className="grid related-grid">
-          {related.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      {related.length > 0 && <ProductRow id="related" tagline="Pairs that go well with this" title="You may also like" products={related} />}
 
-      <div className={`toast ${toast ? "show" : ""}`} role="status" aria-live="polite">
-        {toast && (
-          <>
-            <span><b>Added to cart</b>{toast}</span>
-            <Link href="/cart" className="toast-link">View cart</Link>
-          </>
-        )}
+      <div className={`sticky-buy ${barVisible && !soldOut ? "show" : ""}`} aria-hidden={!(barVisible && !soldOut)}>
+        <div className="sticky-info">
+          <span className="sticky-name">{product.name}</span>
+          <Price product={product} />
+        </div>
+        <button type="button" className="btn" onClick={addToCart} tabIndex={barVisible && !soldOut ? 0 : -1}>{size ? "Add to cart" : "Choose size"}</button>
       </div>
+
+      <SizeGuide open={guideOpen} onClose={() => setGuideOpen(false)} kids={product.gender === "kids"} />
     </>
   );
 }
