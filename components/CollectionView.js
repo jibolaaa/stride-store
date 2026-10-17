@@ -35,7 +35,9 @@ export default function CollectionView({ slug, q = "" }) {
   const shown = useMemo(() => sortProducts(applyFilters(base, filters), sort), [base, filters, sort]);
   const draftCount = useMemo(() => applyFilters(base, draft).length, [base, draft]);
   const nActive = activeCount(filters);
-  const hasSale = base.some(p => p.compare_kobo > p.price_kobo);
+  // The quick "On sale" chip only helps when some, not all, of these pairs are on sale.
+  const saleCount = base.filter(p => p.compare_kobo > p.price_kobo).length;
+  const hasSale = saleCount > 0 && saleCount < base.length;
 
   const openFilters = () => { setDraft(filters); setFilterOpen(true); };
   const toggle = (key, value) => setDraft(d => ({ ...d, [key]: d[key].includes(value) ? d[key].filter(v => v !== value) : [...d[key], value] }));
