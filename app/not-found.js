@@ -1,19 +1,16 @@
 import Link from "next/link";
-import Danfo from "../components/Danfo";
-import StoreShell from "../components/StoreShell";
 
+// A plain fallback. Unknown shop addresses use app/(store)/not-found.js and
+// the back office uses its own, so this one stays small: Next.js sends it
+// along with every page.
 export default function NotFound() {
   return (
-    <StoreShell>
-      <div className="wrap page empty-state">
-        <div className="danfo-scene parked" aria-hidden="true"><Danfo /><span className="lane" /></div>
-        <h1 className="page-title">Wrong bus stop</h1>
-        <p>This page isn't on our route. The link may be old, or the product may have been removed.</p>
-        <div className="empty-actions">
-          <Link className="btn" href="/collections/all">Shop all sneakers</Link>
-          <Link className="btn outline" href="/">Go home</Link>
-        </div>
+    <main id="main" className="wrap page empty-state">
+      <h1 className="page-title">Page not found</h1>
+      <p>The link may be old or mistyped.</p>
+      <div className="empty-actions">
+        <Link className="btn" href="/">Go to STRIDE</Link>
       </div>
-    </StoreShell>
+    </main>
   );
 }
