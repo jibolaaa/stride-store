@@ -82,7 +82,7 @@ export default function SellScreen({ products }) {
       setLines([]); setPayment(null); setNote(""); setRef(null);
       router.refresh();
     } catch {
-      setError("Couldn't reach the server. Tap Complete sale again when you're back online; it won't be recorded twice.");
+      setError("Couldn't reach the server. Tap Mark as paid again when you're back online; the sale won't be recorded twice.");
     } finally {
       setSending(false);
     }
@@ -102,7 +102,12 @@ export default function SellScreen({ products }) {
         <div className="ofc-head">
           <div>
             <h1 className="ofc-title" id="sell-title">Sell</h1>
-            <p className="ofc-sub">Tap a shoe, pick the size, then complete the sale.</p>
+            <p className="ofc-sub">For a customer buying here in the shop.</p>
+            <ol className="sell-steps">
+              <li><b>1</b>Tap the shoe they picked</li>
+              <li><b>2</b>Choose the size</li>
+              <li><b>3</b>Take payment</li>
+            </ol>
           </div>
         </div>
         <div className="sell-tools">
@@ -144,27 +149,27 @@ export default function SellScreen({ products }) {
         )}
       </section>
 
-      <aside className="sale-side" aria-label="This sale"><SalePanel {...panelProps} /></aside>
+      <aside className="sale-side" aria-label="Customer's bill"><SalePanel {...panelProps} /></aside>
 
       {(lines.length > 0 || done) && (
         <div className="sale-bar">
           {done && !lines.length ? (
             <>
-              <div><span>Sale #{done.id} saved</span><b>{naira(done.total)}</b></div>
+              <div><span>Paid. Sale #{done.id} saved</span><b>{naira(done.total)}</b></div>
               <button type="button" className="btn small" onClick={() => setReviewOpen(true)}>View</button>
             </>
           ) : (
             <>
-              <div><span>{pairsText(pairs)} in this sale</span><b>{naira(total)}</b></div>
-              <button type="button" className="btn small" onClick={() => setReviewOpen(true)}>Review and pay</button>
+              <div><span>Customer's bill, {pairsText(pairs)}</span><b>{naira(total)}</b></div>
+              <button type="button" className="btn small" onClick={() => setReviewOpen(true)}>Take payment</button>
             </>
           )}
         </div>
       )}
 
-      <Sheet open={reviewOpen} onClose={() => setReviewOpen(false)} side="bottom" label="This sale">
+      <Sheet open={reviewOpen} onClose={() => setReviewOpen(false)} side="bottom" label="Customer's bill">
         <div className="sheet-head">
-          <p className="sheet-title">This sale</p>
+          <p className="sheet-title">Customer's bill</p>
           <button type="button" className="icon-btn" onClick={() => setReviewOpen(false)} aria-label="Close"><CloseIcon /></button>
         </div>
         <div className="sheet-pad"><SalePanel {...panelProps} inSheet /></div>
@@ -189,7 +194,7 @@ function PickSheet({ product, onClose, leftIn, onAdd }) {
   const max = size ? leftIn(size) : 1;
 
   return (
-    <Sheet open={!!product} onClose={onClose} side="bottom" label={product ? `Add ${product.name} to the sale` : "Add to sale"} className="quick">
+    <Sheet open={!!product} onClose={onClose} side="bottom" label={product ? `Add ${product.name} to the bill` : "Add to bill"} className="quick">
       {product && (
         <>
           <div className="quick-head">
@@ -226,7 +231,7 @@ function PickSheet({ product, onClose, leftIn, onAdd }) {
             </div>
           </div>
           <button type="button" className="btn full" onClick={() => size ? onAdd(size, qty) : setError(true)}>
-            Add to sale{size ? `, ${naira(product.price_kobo * qty)}` : ""}
+            Add to bill{size ? `, ${naira(product.price_kobo * qty)}` : ""}
           </button>
         </>
       )}
@@ -242,15 +247,15 @@ function SalePanel({ lines, byId, stockOf, setQty, total, pairs, payment, setPay
     return (
       <div className="done" role="status">
         <span className="tick"><CheckIcon aria-hidden="true" /></span>
-        <h2 className="panel-title">Sale #{done.id} saved</h2>
+        <h2 className="panel-title">Paid. Sale #{done.id} saved</h2>
         <p className="muted">
           {done.again
             ? "This sale had already gone through before the connection dropped, so it was only recorded once. Check the receipt."
-            : `${pairsText(done.pairs)}, ${naira(done.total)}, paid by ${done.payment}. Stock is updated.`}
+            : `${pairsText(done.pairs)}, ${naira(done.total)}, paid by ${done.payment}. Stock is updated and the receipt is ready.`}
         </p>
         <div className="ofc-row">
           <Link className="btn small" href={`/office/sales/${done.id}`}>View receipt</Link>
-          <button type="button" className="btn small outline" onClick={newSale}>New sale</button>
+          <button type="button" className="btn small outline" onClick={newSale}>Next customer</button>
         </div>
       </div>
     );
@@ -259,8 +264,8 @@ function SalePanel({ lines, byId, stockOf, setQty, total, pairs, payment, setPay
   if (!lines.length) {
     return (
       <div className="sale-panel">
-        <h2 className="panel-title">This sale</h2>
-        <p className="muted">Nothing yet. Tap a shoe to add it.</p>
+        <h2 className="panel-title">Customer's bill</h2>
+        <p className="muted">Empty. Tap the shoe the customer picked to add it.</p>
       </div>
     );
   }
@@ -268,8 +273,8 @@ function SalePanel({ lines, byId, stockOf, setQty, total, pairs, payment, setPay
   return (
     <div className="sale-panel">
       <div className="panel-head">
-        {inSheet ? <span className="muted">{pairsText(pairs)}</span> : <h2 className="panel-title">This sale</h2>}
-        <button type="button" className="text-btn" onClick={clear}>Clear sale</button>
+        {inSheet ? <span className="muted">{pairsText(pairs)}</span> : <h2 className="panel-title">Customer's bill</h2>}
+        <button type="button" className="text-btn" onClick={clear}>Clear bill</button>
       </div>
       <ul className="sale-lines">
         {lines.map((l, k) => {
@@ -297,8 +302,8 @@ function SalePanel({ lines, byId, stockOf, setQty, total, pairs, payment, setPay
       </ul>
       <div className="sale-total"><span>Total, {pairsText(pairs)}</span><span>{naira(total)}</span></div>
       <div className="ofc-field">
-        <span>Paid by</span>
-        <div className="seg" role="group" aria-label="Paid by">
+        <span>How did they pay?</span>
+        <div className="seg" role="group" aria-label="How did they pay?">
           {Object.entries(PAYMENT_LABEL).map(([v, label]) => (
             <button key={v} type="button" aria-pressed={payment === v} onClick={() => setPayment(v)}>{label}</button>
           ))}
@@ -310,7 +315,7 @@ function SalePanel({ lines, byId, stockOf, setQty, total, pairs, payment, setPay
       </label>
       {error && <p className="ofc-error" role="alert">{error}</p>}
       <button type="button" className="btn full" onClick={complete} disabled={sending}>
-        {sending ? "Saving the sale…" : `Complete sale, ${naira(total)}`}
+        {sending ? "Saving the sale…" : `Mark as paid, ${naira(total)}`}
       </button>
     </div>
   );

@@ -264,3 +264,34 @@ a.stat { transition: background-color .2s; }
 .steps { margin: 0; padding-left: 22px; display: grid; gap: 10px; font-size: 15px; }
 .steps b { font-weight: 600; }
 .gate-back { justify-self: start; color: var(--ash); }
+
+/* confirm step before a change is saved */
+.confirm-box { display: grid; gap: 12px; padding: 16px; border-radius: 14px; background: var(--mist); border: 1.5px solid var(--ink); outline: none; }
+.confirm-q { font-size: 16px; font-weight: 600; }
+.confirm-detail { display: grid; gap: 4px; margin-top: 6px; font-size: 14px; }
+.confirm-detail ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+fieldset.plain { border: 0; margin: 0; padding: 0; min-width: 0; }
+fieldset:disabled .ofc-input, fieldset:disabled .ofc-select { opacity: .6; }
+.field-help { margin-top: -4px; font-size: 13px; color: var(--ash); }
+
+/* stock change choices */
+.choices { display: grid; gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.choices legend { padding: 0; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
+.choice { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.choice input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ink); }
+.choice b { display: block; font-size: 15px; font-weight: 600; }
+.choice span span { display: block; font-size: 13px; color: var(--ash); }
+.choice:has(input:checked) { border-color: var(--ink); background: var(--mist); }
+.choices:disabled .choice { opacity: .6; cursor: default; }
+
+/* sell: three simple steps */
+.sell-steps { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+.sell-steps li { display: inline-flex; align-items: center; gap: 6px; }
+.sell-steps b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--danfo); color: #000; font-size: 12px; font-weight: 700; }
+
+/* demo sign-in cards show the email too */
+.demo-who { display: grid; text-align: left; }
+.demo-who small { font-size: 12px; color: var(--ash); }
+.demo-logins button { align-items: center; }
+.demo-logins button .demo-who { color: var(--ink); }
+.demo-logins button .demo-who small { color: var(--ash); }

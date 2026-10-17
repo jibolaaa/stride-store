@@ -29,6 +29,7 @@ export default function Footer() {
             <Link href="/help#sizes">Size guide</Link>
             <a href={WHATSAPP} target="_blank" rel="noopener">WhatsApp us</a>
             <Link href="/about">About STRIDE</Link>
+            <Link href="/office">Staff sign-in</Link>
           </nav>
         </div>
         <div className="foot-base">

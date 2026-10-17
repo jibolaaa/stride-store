@@ -13,6 +13,10 @@ export default function LoginForm({ demo, demoPassword }) {
 
   async function signIn(creds, who) {
     if (busy) return;
+    if (!creds.email.includes("@")) {
+      setError(demo.length ? `Type the email address, like ${demo[0].email}, not the name.` : "Type your email address.");
+      return;
+    }
     setBusy(who);
     setError("");
     try {
@@ -37,7 +41,7 @@ export default function LoginForm({ demo, demoPassword }) {
         <label className="ofc-field">
           <span>Email</span>
           <input className="ofc-input" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
-            value={email} onChange={e => { setEmail(e.target.value); setError(""); }} />
+            placeholder={demo.length ? demo[0].email : "you@example.com"} value={email} onChange={e => { setEmail(e.target.value); setError(""); }} />
         </label>
         <label className="ofc-field">
           <span>Password</span>
@@ -50,10 +54,10 @@ export default function LoginForm({ demo, demoPassword }) {
 
       {demo.length > 0 && (
         <div className="demo-logins">
-          <p><b>Trying the demo?</b> Tap a person to sign in as them. Each role sees a different back office. The password for all of them is {demoPassword}.</p>
+          <p><b>Trying the demo?</b> Tap a person to sign in as them, or type their email above with the password <b>{demoPassword}</b>. Each role sees a different back office.</p>
           {demo.map(d => (
             <button key={d.email} type="button" disabled={!!busy} onClick={() => signIn({ email: d.email, password: demoPassword }, d.email)}>
-              <b>{d.name}</b>
+              <span className="demo-who"><b>{d.name}</b><small>{d.email}</small></span>
               <span>{busy === d.email ? "Signing in…" : ROLE_LABEL[d.role]}</span>
             </button>
           ))}
