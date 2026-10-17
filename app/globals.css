@@ -19,8 +19,8 @@
   --scrim: rgba(0, 0, 0, .4);
   --header-h: 60px;
   --gutter: 20px;
-  --text: var(--font-jost), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --display: var(--font-archivo), "Arial Narrow", var(--text);
+  --text: var(--font-instrument), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --display: var(--text);
   --ease: cubic-bezier(.2, .8, .2, 1);
   color-scheme: light;
 }
@@ -83,17 +83,14 @@ h1, h2, h3, p, figure { margin: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- type ---------- */
-/* Headlines: Archivo italic, narrow and heavy. The slant reads as movement. */
+/* Headlines: Instrument Sans, bold and tightly spaced, in sentence case. */
 .sec-title, .page-title, .slide-title, .pdp-title, .cat-label b, .menu-links a, .logo {
   font-family: var(--display);
-  font-style: italic;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0;
+  font-weight: 700;
 }
-.sec-title, .page-title, .slide-title, .pdp-title, .cat-label b, .menu-links a { font-stretch: 66%; line-height: .88; word-spacing: .12em; }
-.sec-title { font-size: clamp(36px, 10vw, 68px); }
-.page-title { font-size: clamp(44px, 13vw, 92px); }
+.sec-title, .page-title, .slide-title, .pdp-title, .cat-label b, .menu-links a { line-height: 1; letter-spacing: -.035em; }
+.sec-title { font-size: clamp(30px, 8vw, 52px); }
+.page-title { font-size: clamp(38px, 10.5vw, 72px); }
 .page-sub { margin-top: 10px; color: var(--ash); font-size: 15px; }
 .opt-label { display: flex; gap: 8px; margin: 0 0 12px; padding: 0; font-size: 15px; font-weight: 500; }
 .opt-label span { color: var(--ash); font-weight: 400; }
@@ -188,7 +185,7 @@ h1, h2, h3, p, figure { margin: 0; }
   display: grid; grid-template-columns: auto 1fr auto; align-items: center;
   height: calc(var(--header-h) - 1px); max-width: 1440px; margin: 0 auto; padding: 0 8px 0 var(--gutter);
 }
-.logo { font-stretch: 125%; font-size: 23px; line-height: 1; letter-spacing: -.01em; }
+.logo { font-size: 23px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
 .header-nav { display: none; }
 .header-tools { display: flex; align-items: center; justify-content: flex-end; grid-column: 3; }
 .bag-art { position: absolute; inset: 0; display: grid; place-items: center; }
@@ -239,7 +236,7 @@ h1, h2, h3, p, figure { margin: 0; }
 .menu .sheet-head { border-bottom: 0; }
 .menu .logo { font-size: 21px; }
 .menu-links { display: grid; padding: 4px 20px 12px; }
-.menu-links a { padding: 6px 0; font-size: 48px; }
+.menu-links a { padding: 7px 0; font-size: 40px; }
 .menu-links a.sale { color: var(--ink); background: linear-gradient(var(--danfo), var(--danfo)) 0 72% / 100% 30% no-repeat; justify-self: start; padding-right: 6px; }
 .menu-foot { display: grid; gap: 2px; margin-top: auto; padding: 16px 20px 28px; border-top: 1px solid var(--line); font-size: 15px; }
 .menu-foot a { padding: 8px 0; }
@@ -387,7 +384,7 @@ body:has(.sticky-buy.show) .toast-zone { bottom: calc(86px + env(safe-area-inset
 @keyframes drift { from { transform: scale(1); } to { transform: scale(1.08) translateX(-1.5%); } }
 .slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .28) 45%, rgba(0, 0, 0, 0) 72%); pointer-events: none; }
 .slide-copy { position: relative; z-index: 1; width: 100%; max-width: 760px; padding: 0 var(--gutter) 84px; }
-.slide-title { font-size: clamp(64px, 19vw, 168px); margin-bottom: 14px; }
+.slide-title { font-size: clamp(50px, 13.5vw, 128px); line-height: .98; margin-bottom: 14px; }
 .slide-sub { max-width: 34ch; margin-bottom: 22px; font-size: 16px; opacity: .92; }
 /* headline words rise out of a mask one after another, then the line and button follow */
 .slide-title .w { display: inline-block; overflow: hidden; vertical-align: top; padding: .04em .1em .1em 0; margin: -.04em -.1em -.1em 0; }
@@ -483,7 +480,7 @@ body:has(.sticky-buy.show) .toast-zone { bottom: calc(86px + env(safe-area-inset
 .stars-num { color: var(--ash); }
 
 .img-fallback { display: grid; place-items: center; width: 100%; height: 100%; background: var(--mist); }
-.img-fallback::after { content: "STRIDE"; font-family: var(--display); font-style: italic; font-weight: 900; font-stretch: 125%; font-size: 13px; color: var(--ash); opacity: .4; }
+.img-fallback::after { content: "STRIDE"; font-weight: 700; letter-spacing: .04em; font-size: 13px; color: var(--ash); opacity: .4; }
 .sr-thumb img, .line-thumb img, .quick-thumb img, .gallery-slide img, .gallery-thumbs img, .sum-thumb img, .toast-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ---------- the danfo ---------- */
@@ -528,7 +525,7 @@ body:has(.sticky-buy.show) .toast-zone { bottom: calc(86px + env(safe-area-inset
 .cat img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cat::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .62), rgba(0, 0, 0, 0) 55%); }
 .cat-label { position: relative; z-index: 1; display: grid; gap: 6px; padding: 0 18px 18px; }
-.cat-label b { font-size: 60px; }
+.cat-label b { font-size: 44px; }
 .cat-label span { font-size: 14px; opacity: .85; }
 @media (min-width: 700px) {
   .cat-row { grid-auto-flow: row; grid-template-columns: repeat(3, 1fr); overflow: visible; max-width: 1360px; margin: 0 auto; }
@@ -590,7 +587,7 @@ body:has(.sticky-buy.show) .toast-zone { bottom: calc(86px + env(safe-area-inset
 .pdp-info { display: grid; gap: 26px; align-content: start; min-width: 0; }
 .pdp-head { display: grid; gap: 10px; }
 .pdp-kind { font-size: 15px; color: var(--ash); }
-.pdp-title { font-size: clamp(48px, 13vw, 84px); }
+.pdp-title { font-size: clamp(36px, 9.5vw, 60px); }
 .pdp-price-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 4px; }
 .pdp-price { font-size: 21px; }
 .save { font-size: 14px; display: inline-flex; justify-self: start; padding: 3px 10px; border-radius: 999px; background: var(--danfo); color: #000; font-weight: 500; }

@@ -7,7 +7,7 @@ STRIDE is fictional. No real products are sold and payments run in Paystack's te
 
 ## Look and feel
 - Black and white with one colour, danfo yellow, kept for things that matter: sale tags, the bag count and delivery progress
-- Narrow, slanted headlines (Archivo italic) and Jost for reading; rounded buttons; everything left-aligned
+- One font, Instrument Sans: bold, tightly spaced headlines and clean text; rounded buttons; everything left-aligned
 - Light and dark mode, remembered on the device
 
 ## Motion
@@ -47,7 +47,7 @@ STRIDE is fictional. No real products are sold and payments run in Paystack's te
 - `app/api/paystack/` the two server routes: start a payment, confirm a payment
 - `components/` header, drawers and sheets, product card and rows, product page, bag state, theme switch, the danfo
 - `lib/` the product list and collections, filters and search, delivery rules, money formatting, form checks
-- `app/fonts/` Jost and Archivo, served from the site itself (SIL Open Font License). Jost has a ₦ sign added to it, since the copy used here didn't have one.
+- `app/fonts/` Instrument Sans, served from the site itself (SIL Open Font License). It has a ₦ sign added to it, since the font doesn't include one.
 
 ## Run it
 1. `npm install`

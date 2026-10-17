@@ -13,23 +13,14 @@ import CartDrawer from "../components/CartDrawer";
 import QuickAddSheet from "../components/QuickAddSheet";
 import Toast from "../components/Toast";
 
-// Fonts are served from this site, so nothing waits on Google Fonts.
-// Jost (with a ₦ sign added) for reading; Archivo italic, narrow and heavy, for headlines.
-const jost = localFont({
-  src: "./fonts/jost.woff2",
-  variable: "--font-jost",
-  weight: "100 900",
-  display: "swap"
-});
-const archivo = localFont({
-  src: [
-    { path: "./fonts/archivo.woff2", style: "normal" },
-    { path: "./fonts/archivo-italic.woff2", style: "italic" }
-  ],
-  variable: "--font-archivo",
-  weight: "100 900",
+// One font for everything: Instrument Sans, served from this site so
+// nothing waits on Google Fonts. It has a ₦ sign added (see README).
+const instrument = localFont({
+  src: "./fonts/instrument-sans.woff2",
+  variable: "--font-instrument",
+  weight: "400 700",
   display: "swap",
-  declarations: [{ prop: "font-stretch", value: "62% 125%" }]
+  declarations: [{ prop: "font-stretch", value: "75% 100%" }]
 });
 
 export const metadata = {
@@ -45,7 +36,7 @@ const boot = `(function(){var d=document.documentElement;d.classList.add("js");t
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light" className={`${jost.variable} ${archivo.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="light" className={instrument.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: boot }} />
       </head>
