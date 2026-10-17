@@ -6,8 +6,8 @@ export default function AboutPage() {
   return (
     <div className="wrap page">
       <div className="page-head">
-        <p className="kicker">Our story</p>
         <h1 className="page-title">Made for the walk</h1>
+        <p className="page-sub">Our story</p>
       </div>
       <div className="prose">
         <p>STRIDE started with a simple frustration: good sneakers in Lagos were either overpriced, fake, or a hassle to buy. So the store does three things. Clean designs, honest prices, and a checkout that takes a minute.</p>

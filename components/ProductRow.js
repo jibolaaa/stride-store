@@ -1,36 +1,52 @@
 "use client";
-// A section with a small line on top, a big title, a row of products you
-// swipe sideways (arrows on bigger screens) and a button under it.
+// A section title, then a row of products you drag or swipe sideways
+// (Embla Carousel). A thin line shows how far along the row you are;
+// bigger screens also get arrow buttons.
 import Link from "next/link";
-import { useRef } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
-import { ChevronLeft, ChevronRight } from "./Icons";
+import Reveal from "./Reveal";
+import { ArrowLeft, ArrowRight } from "./Icons";
 
-export default function ProductRow({ id, tagline, title, products, cta, href, band = true }) {
-  const track = useRef(null);
-  const step = (dir) => {
-    const el = track.current;
-    if (!el) return;
-    const card = el.querySelector(".row-item");
-    el.scrollBy({ left: dir * (card ? card.offsetWidth + 16 : el.clientWidth * .8), behavior: "smooth" });
-  };
+export default function ProductRow({ id, title, products, href, linkLabel = "See all" }) {
+  const [viewport, api] = useEmblaCarousel({ align: "start", dragFree: true, containScroll: "trimSnaps" });
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(products.length > 1);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+    const onSelect = () => { setCanPrev(api.canScrollPrev()); setCanNext(api.canScrollNext()); };
+    const onScroll = () => setProgress(Math.max(0, Math.min(1, api.scrollProgress())));
+    onSelect();
+    onScroll();
+    api.on("select", onSelect).on("reInit", onSelect).on("scroll", onScroll).on("reInit", onScroll);
+    return () => {
+      api.off("select", onSelect).off("reInit", onSelect).off("scroll", onScroll).off("reInit", onScroll);
+    };
+  }, [api]);
 
   return (
-    <section className={`row-section ${band ? "band" : ""}`} id={id} aria-labelledby={`${id}-title`}>
-      <div className="section-head">
-        {tagline && <p className="kicker">{tagline}</p>}
-        <h2 id={`${id}-title`} className="section-title">{title}</h2>
+    <section className="row" id={id} aria-labelledby={`${id}-title`}>
+      <div className="sec-head wrap">
+        <h2 id={`${id}-title`} className="sec-title"><Reveal>{title}</Reveal></h2>
+        {href && <Link href={href} className="sec-link">{linkLabel}</Link>}
       </div>
-      <div className="row-wrap">
-        <button type="button" className="row-arrow prev" onClick={() => step(-1)} aria-label={`Scroll ${title} back`}><ChevronLeft /></button>
-        <div className="row-track" ref={track}>
+      <div className="row-viewport" ref={viewport}>
+        <div className="row-track">
           {products.map((p, i) => (
             <div className="row-item" key={p.id}><ProductCard product={p} priority={i < 2} /></div>
           ))}
         </div>
-        <button type="button" className="row-arrow next" onClick={() => step(1)} aria-label={`Scroll ${title} forward`}><ChevronRight /></button>
       </div>
-      {cta && <div className="section-cta"><Link href={href} className="btn">{cta}</Link></div>}
+      <div className="row-foot wrap">
+        <div className="row-progress" aria-hidden="true"><span style={{ transform: `scaleX(${0.18 + 0.82 * progress})` }} /></div>
+        <div className="row-arrows">
+          <button type="button" className="round-btn" onClick={() => api?.scrollPrev()} disabled={!canPrev} aria-label={`Back through ${title}`}><ArrowLeft /></button>
+          <button type="button" className="round-btn" onClick={() => api?.scrollNext()} disabled={!canNext} aria-label={`More ${title}`}><ArrowRight /></button>
+        </div>
+      </div>
     </section>
   );
 }

@@ -7,14 +7,13 @@ import { useUI } from "./UIProvider";
 import ThemeToggle from "./ThemeToggle";
 import { BagIcon, MenuIcon, SearchIcon } from "./Icons";
 
-// Shown under the logo on bigger screens. Phones use the menu drawer.
+// Shown in the header on bigger screens. Phones use the menu.
 const NAV = [
   ["New in", "/collections/new-in"],
   ["Men", "/collections/men"],
   ["Women", "/collections/women"],
   ["Kids", "/collections/kids"],
   ["Running", "/collections/running"],
-  ["Basketball", "/collections/basketball"],
   ["Sale", "/collections/sale"]
 ];
 
@@ -23,6 +22,7 @@ export default function Header() {
   const { show } = useUI();
   const path = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [pop, setPop] = useState(0); // goes up each time a shoe lands in the bag
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -31,27 +31,34 @@ export default function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
+  useEffect(() => {
+    const onPop = () => setPop(n => n + 1);
+    window.addEventListener("stride-bag-pop", onPop);
+    return () => window.removeEventListener("stride-bag-pop", onPop);
+  }, []);
+
   return (
     <header className={`header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-in">
-        <div className="header-side">
-          <button type="button" className="icon-btn" onClick={() => show("menu")} aria-label="Open menu"><MenuIcon /></button>
-          <ThemeToggle />
-        </div>
         <Link href="/" className="logo" aria-label="STRIDE home">STRIDE</Link>
-        <div className="header-side end">
+        <nav className="header-nav" aria-label="Main">
+          {NAV.map(([label, href]) => (
+            <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>{label}</Link>
+          ))}
+        </nav>
+        <div className="header-tools">
           <button type="button" className="icon-btn" onClick={() => show("search")} aria-label="Search"><SearchIcon /></button>
-          <button type="button" className="icon-btn bag" onClick={() => show("cart")} aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`}>
-            <BagIcon />
-            {loaded && count > 0 && <span className="bag-count" aria-hidden="true">{count}</span>}
+          <ThemeToggle />
+          <button type="button" className="icon-btn bag" onClick={() => show("cart")} aria-label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}>
+            {/* the key restarts the bounce each time */}
+            <span className={`bag-art ${pop ? "pop" : ""}`} key={pop}>
+              <BagIcon />
+              {loaded && count > 0 && <span className="bag-count" aria-hidden="true">{count}</span>}
+            </span>
           </button>
+          <button type="button" className="icon-btn menu-btn" onClick={() => show("menu")} aria-label="Open menu"><MenuIcon /></button>
         </div>
       </div>
-      <nav className="header-nav" aria-label="Main">
-        {NAV.map(([label, href]) => (
-          <Link key={href} href={href} className={label === "Sale" ? "sale" : undefined} aria-current={path === href ? "page" : undefined}>{label}</Link>
-        ))}
-      </nav>
     </header>
   );
 }

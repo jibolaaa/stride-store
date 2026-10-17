@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../components/CartProvider";
+import Danfo from "../../components/Danfo";
 
 function Result() {
   const params = useSearchParams();
@@ -27,7 +28,7 @@ function Result() {
   if (state.status === "checking") {
     return (
       <div className="result" aria-busy="true">
-        <div className="spinner" aria-hidden="true" />
+        <div className="danfo-scene moving" aria-hidden="true"><Danfo driving /><span className="lane" /></div>
         <h1 className="page-title">Checking your payment</h1>
         <p>This takes a few seconds. Please keep this page open.</p>
       </div>
@@ -47,9 +48,8 @@ function Result() {
   if (state.status === "success") {
     return (
       <div className="result ok">
-        <div className="mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </div>
+        {/* the danfo pulls away: your order is on its way soon */}
+        <div className="danfo-scene away" aria-hidden="true"><Danfo driving /><span className="lane" /></div>
         <h1 className="page-title">Payment received</h1>
         <p>Thanks for your order{state.amount ? ` of ${state.amount}` : ""}. We'll call you to arrange delivery within 1 to 2 working days.</p>
         <p className="ref">Order reference <b>{reference}</b></p>

@@ -12,7 +12,7 @@ export default function CartPage() {
   if (!items.length) {
     return (
       <div className="wrap page empty-state">
-        <h1 className="page-title">Your cart is empty</h1>
+        <h1 className="page-title">Your bag is empty</h1>
         <p>Pick a pair and it will show up here.</p>
         <div className="empty-actions">
           <Link className="btn" href="/collections/new-in">Shop new in</Link>
@@ -25,8 +25,8 @@ export default function CartPage() {
   return (
     <div className="wrap page">
       <div className="page-head">
-        <p className="kicker">{count} {count === 1 ? "item" : "items"}</p>
-        <h1 className="page-title">Your cart</h1>
+        <h1 className="page-title">Your bag</h1>
+        <p className="page-sub">{count} {count === 1 ? "item" : "items"}</p>
       </div>
       <div className="cart-layout">
         <div className="cart-main">

@@ -49,7 +49,7 @@ export default function SearchOverlay() {
       <div className="search-body">
         {!query && (
           <div className="search-popular">
-            <p className="kicker">Popular searches</p>
+            <p className="search-label">Popular searches</p>
             <div className="chips">
               {POPULAR.map(t => <button key={t} type="button" className="chip" onClick={() => setQ(t)}>{t}</button>)}
             </div>

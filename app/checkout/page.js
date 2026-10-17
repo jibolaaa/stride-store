@@ -66,8 +66,8 @@ export default function CheckoutPage() {
   return (
     <div className="wrap page">
       <div className="page-head">
-        <p className="kicker">Delivery in Lagos</p>
         <h1 className="page-title">Checkout</h1>
+        <p className="page-sub">Delivery anywhere in Lagos</p>
       </div>
       <form onSubmit={pay} className="checkout-layout" noValidate>
         <fieldset className="fields" disabled={loading}>

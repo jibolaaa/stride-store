@@ -19,8 +19,8 @@ export default function HelpPage() {
   return (
     <div className="wrap page">
       <div className="page-head">
-        <p className="kicker">Delivery, returns and sizes</p>
         <h1 className="page-title">Help</h1>
+        <p className="page-sub">Delivery, returns, payment and sizes</p>
       </div>
       <div className="prose">
         <div className="accordion">

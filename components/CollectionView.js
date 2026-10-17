@@ -5,7 +5,8 @@ import { getCollection } from "../lib/products";
 import { activeCount, applyFilters, filterGroups, matchesQuery, sortProducts, SORTS } from "../lib/filters";
 import ProductCard from "./ProductCard";
 import Sheet from "./Sheet";
-import { ChevronDown, CloseIcon, GridOneIcon, GridTwoIcon } from "./Icons";
+import { useMediaQuery } from "./useMediaQuery";
+import { ChevronDown, CloseIcon, FilterIcon, GridOneIcon, GridTwoIcon } from "./Icons";
 
 const EMPTY = { gender: [], type: [], size: [], price: [], colour: [], saleOnly: false, inStockOnly: false };
 
@@ -23,6 +24,7 @@ export default function CollectionView({ slug, q = "" }) {
   const [sort, setSort] = useState("featured");
   const [cols, setCols] = useState(2);
   const [filterOpen, setFilterOpen] = useState(false);
+  const wide = useMediaQuery("(min-width: 700px)");
 
   useEffect(() => { try { const c = Number(localStorage.getItem("stride_cols")); if (c === 1 || c === 2) setCols(c); } catch {} }, []);
   useEffect(() => { setFilters(EMPTY); }, [q]); // a new search starts with no filters
@@ -33,6 +35,7 @@ export default function CollectionView({ slug, q = "" }) {
   const shown = useMemo(() => sortProducts(applyFilters(base, filters), sort), [base, filters, sort]);
   const draftCount = useMemo(() => applyFilters(base, draft).length, [base, draft]);
   const nActive = activeCount(filters);
+  const hasSale = base.some(p => p.compare_kobo > p.price_kobo);
 
   const openFilters = () => { setDraft(filters); setFilterOpen(true); };
   const toggle = (key, value) => setDraft(d => ({ ...d, [key]: d[key].includes(value) ? d[key].filter(v => v !== value) : [...d[key], value] }));
@@ -40,33 +43,40 @@ export default function CollectionView({ slug, q = "" }) {
 
   return (
     <div className="collection">
-      <div className="collection-head">
-        <p className="kicker">{q ? `Search results for “${q}”` : collection.tagline}</p>
-        <h1 className="section-title">{collection.title}</h1>
+      <div className="collection-head wrap">
+        <h1 className="page-title">{collection.title}</h1>
+        <p className="collection-sub">{q ? `Results for “${q}”` : collection.tagline}</p>
       </div>
 
       <div className="toolbar">
-        <button type="button" className="tool" onClick={openFilters} aria-haspopup="dialog" aria-label={nActive > 0 ? `Filter, ${nActive} on` : "Filter"}>
-          Filter{nActive > 0 && <span className="tool-count" aria-hidden="true">{nActive}</span>}
-        </button>
-        <label className="tool sort">
-          <span className="tool-label" aria-hidden="true">{SORTS.find(s => s.id === sort)?.short}</span>
-          <ChevronDown />
-          <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort by">
-            {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
-        </label>
-        <div className="tool grid-pick" role="group" aria-label="Products per row">
-          <button type="button" className={cols === 1 ? "on" : ""} onClick={() => pickCols(1)} aria-label="One per row" aria-pressed={cols === 1}><GridOneIcon /></button>
-          <button type="button" className={cols === 2 ? "on" : ""} onClick={() => pickCols(2)} aria-label="Two per row" aria-pressed={cols === 2}><GridTwoIcon /></button>
+        <div className="toolbar-in wrap">
+          <div className="chips">
+            <button type="button" className={`chip ${nActive > 0 ? "on" : ""}`} onClick={openFilters} aria-haspopup="dialog" aria-label={nActive > 0 ? `Filter, ${nActive} on` : "Filter"}>
+              <FilterIcon />Filter{nActive > 0 && <span className="chip-count" aria-hidden="true">{nActive}</span>}
+            </button>
+            <label className="chip select">
+              <span className="chip-label" aria-hidden="true">{SORTS.find(s => s.id === sort)?.short}</span>
+              <ChevronDown />
+              <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort by">
+                {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+              </select>
+            </label>
+            {hasSale && (
+              <button type="button" className={`chip quick-sale ${filters.saleOnly ? "on" : ""}`} aria-pressed={filters.saleOnly} onClick={() => setFilters(f => ({ ...f, saleOnly: !f.saleOnly }))}>On sale</button>
+            )}
+          </div>
+          <div className="grid-pick" role="group" aria-label="Products per row">
+            <button type="button" className={cols === 1 ? "on" : ""} onClick={() => pickCols(1)} aria-label="One per row" aria-pressed={cols === 1}><GridOneIcon /></button>
+            <button type="button" className={cols === 2 ? "on" : ""} onClick={() => pickCols(2)} aria-label="Two per row" aria-pressed={cols === 2}><GridTwoIcon /></button>
+          </div>
         </div>
       </div>
 
-      <p className="result-count" aria-live="polite">{shown.length} {shown.length === 1 ? "product" : "products"}</p>
+      <p className="result-count wrap" aria-live="polite">{shown.length} {shown.length === 1 ? "pair" : "pairs"}</p>
 
       {shown.length === 0 ? (
-        <div className="empty-block">
-          <p>{q && base.length === 0 ? `Nothing matches “${q}”. Try a colour, like white, or a style, like running.` : "No sneakers match these filters."}</p>
+        <div className="empty-block wrap">
+          <p>{q && base.length === 0 ? `Nothing matches “${q}”. Try a colour, like white, or a style, like running.` : "No pairs match these filters."}</p>
           {nActive > 0 && <button type="button" className="btn outline" onClick={() => setFilters(EMPTY)}>Clear filters</button>}
         </div>
       ) : (
@@ -75,7 +85,7 @@ export default function CollectionView({ slug, q = "" }) {
         </div>
       )}
 
-      <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} side="left" label="Filter" className="filter-sheet">
+      <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} side={wide ? "right" : "bottom"} label="Filter" className="filter-sheet">
         <div className="sheet-head">
           <p className="sheet-title">Filter</p>
           <button type="button" className="icon-btn" onClick={() => setFilterOpen(false)} aria-label="Close filters" data-autofocus><CloseIcon /></button>
@@ -83,14 +93,14 @@ export default function CollectionView({ slug, q = "" }) {
         <div className="filter-body">
           {groups.map(g => (
             <details key={g.key} className="filter-group" open={g.key === "size" || g.key === "gender" ? true : undefined}>
-              <summary>{g.title}{draft[g.key].length > 0 && <span className="tool-count">{draft[g.key].length}</span>}<ChevronDown /></summary>
+              <summary>{g.title}{draft[g.key].length > 0 && <span className="chip-count">{draft[g.key].length}</span>}<ChevronDown /></summary>
               <div className={g.grid ? "size-grid" : "filter-options"}>
                 {g.options.map(o => g.grid ? (
                   <button key={o.value} type="button" className={`size ${draft[g.key].includes(o.value) ? "on" : ""}`} aria-pressed={draft[g.key].includes(o.value)} aria-label={`Size ${o.label}`} onClick={() => toggle(g.key, o.value)}>{o.label}</button>
                 ) : (
                   <label key={o.value} className="check">
                     <input type="checkbox" checked={draft[g.key].includes(o.value)} onChange={() => toggle(g.key, o.value)} />
-                    <span>{o.label}</span><span className="n">({o.n})</span>
+                    <span>{o.label}</span><span className="n">{o.n}</span>
                   </label>
                 ))}
               </div>
@@ -103,7 +113,7 @@ export default function CollectionView({ slug, q = "" }) {
         </div>
         <div className="filter-foot">
           <button type="button" className="btn outline" onClick={() => setDraft(EMPTY)}>Clear</button>
-          <button type="button" className="btn" onClick={apply}>View {draftCount} {draftCount === 1 ? "result" : "results"}</button>
+          <button type="button" className="btn" onClick={apply}>Show {draftCount} {draftCount === 1 ? "pair" : "pairs"}</button>
         </div>
       </Sheet>
     </div>

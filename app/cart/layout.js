@@ -1,4 +1,4 @@
-export const metadata = { title: "Your cart" };
+export const metadata = { title: "Your bag" };
 
 export default function CartLayout({ children }) {
   return children;

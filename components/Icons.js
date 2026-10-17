@@ -19,3 +19,10 @@ export const ChatIcon = (p) => <svg {...base} {...p}><path d="M4 18.5 5.2 15A7.5
 export const GridOneIcon = (p) => <svg {...base} {...p} fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" /></svg>;
 export const GridTwoIcon = (p) => <svg {...base} {...p} fill="currentColor" stroke="none"><rect x="4" y="4" width="7" height="7" /><rect x="13" y="4" width="7" height="7" /><rect x="4" y="13" width="7" height="7" /><rect x="13" y="13" width="7" height="7" /></svg>;
 export const RulerIcon = (p) => <svg {...base} {...p}><path d="M3 15.5 15.5 3 21 8.5 8.5 21 3 15.5Z" /><path d="M7 11.5l1.8 1.8M10 8.5l1.8 1.8M13 5.5l1.8 1.8" /></svg>;
+// A danfo bus in the same thin-line style, for delivery.
+export const DanfoIcon = (p) => <svg {...base} {...p}><path d="M3.8 6.5h11.6c.9 0 1.7.4 2.2 1.1l2.9 4.1c.3.5.5 1 .5 1.6v2.9c0 .6-.4 1-1 1H3.8c-.7 0-1.3-.6-1.3-1.3V7.8c0-.7.6-1.3 1.3-1.3Z" /><path d="M2.5 12.6h18.4" /><path d="M5.5 9.4h2M9.5 9.4h2M13.5 9.4h1.6" /><circle cx="7" cy="17.6" r="1.7" /><circle cx="16.6" cy="17.6" r="1.7" /></svg>;
+export const CheckIcon = (p) => <svg {...base} {...p}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
+export const FilterIcon = (p) => <svg {...base} {...p}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>;
+export const ArrowLeft = (p) => <svg {...base} {...p}><path d="M19 12H5M11 6l-6 6 6 6" /></svg>;
+export const ArrowRight = (p) => <svg {...base} {...p}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+export const StarIcon = (p) => <svg {...base} {...p} fill="currentColor" stroke="none"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>;

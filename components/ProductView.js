@@ -1,57 +1,59 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { AnimatePresence, motion } from "motion/react";
 import { genderLabel, getProduct, inStock, isSoldOut, onSale, products, sizeList } from "../lib/products";
 import { DELIVERY_FEE_KOBO, FREE_DELIVERY_FROM_KOBO } from "../lib/pricing";
 import { naira, nairaWhole } from "../lib/format";
 import { useCart } from "./CartProvider";
-import { useUI } from "./UIProvider";
+import { useAddToBag } from "./useAddToBag";
 import ProductImage from "./ProductImage";
 import ProductRow from "./ProductRow";
 import { Price, badgeFor } from "./ProductCard";
 import Stars from "./Stars";
 import { ColourPicker } from "./Swatches";
 import SizeGuide from "./SizeGuide";
-import { ChevronDown, MinusIcon, PlusIcon, ReturnIcon, RulerIcon, TruckIcon } from "./Icons";
+import { CheckIcon, ChevronDown, DanfoIcon, MinusIcon, PlusIcon, ReturnIcon, RulerIcon } from "./Icons";
 
-// Photos you swipe on a phone; on bigger screens thumbnails sit underneath.
-function Gallery({ product }) {
-  const track = useRef(null);
+const TYPE = { running: "running", lifestyle: "everyday", basketball: "basketball" };
+const WHOSE = { men: "Men's", women: "Women's", kids: "Kids'", unisex: "Unisex" };
+
+// Photos you swipe or drag (Embla Carousel); bigger screens also get thumbnails.
+const Gallery = forwardRef(function Gallery({ product }, mediaRef) {
+  const [viewport, api] = useEmblaCarousel({ loop: false });
   const [active, setActive] = useState(0);
   const imgs = product.images;
-
-  useEffect(() => {
-    const el = track.current;
-    if (!el) return;
-    el.scrollTo({ left: 0 });
-    setActive(0);
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(Number(e.target.dataset.i)); }), { root: el, threshold: .6 });
-    el.querySelectorAll(".gallery-slide").forEach(s => io.observe(s));
-    return () => io.disconnect();
-  }, [product.id]);
-
-  const goTo = (i) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: "smooth" });
   const badge = badgeFor(product);
 
+  useEffect(() => {
+    if (!api) return;
+    const on = () => setActive(api.selectedScrollSnap());
+    api.scrollTo(0, true);
+    on();
+    api.on("select", on).on("reInit", on);
+    return () => { api.off("select", on).off("reInit", on); };
+  }, [api, product.id]);
+
   return (
-    <div className="gallery">
-      <div className="gallery-track" ref={track} aria-label={`${product.name} photos`} tabIndex={imgs.length > 1 ? 0 : undefined}>
-        {imgs.map((src, i) => (
-          <div className="gallery-slide" key={src} data-i={i}>
-            <ProductImage src={src} alt={i === 0 ? `${product.name} in ${product.colour.toLowerCase()}` : `${product.name}, photo ${i + 1}`} priority={i === 0} />
-          </div>
-        ))}
+    <div className="gallery" ref={mediaRef}>
+      <div className="gallery-viewport" ref={viewport} aria-label={`${product.name} photos`}>
+        <div className="gallery-track">
+          {imgs.map((src, i) => (
+            <div className="gallery-slide" key={src}>
+              <ProductImage src={src} alt={i === 0 ? `${product.name} in ${product.colour.toLowerCase()}` : `${product.name}, photo ${i + 1}`} priority={i === 0} />
+            </div>
+          ))}
+        </div>
       </div>
       {badge && <span className={`badge ${badge.kind}`}>{badge.text}</span>}
       {imgs.length > 1 && (
         <>
-          <div className="gallery-dots">
-            {imgs.map((_, i) => <button key={i} type="button" className={i === active ? "on" : ""} onClick={() => goTo(i)} aria-label={`Photo ${i + 1} of ${imgs.length}`} aria-current={i === active ? "true" : undefined} />)}
-          </div>
+          <span className="gallery-count" aria-hidden="true">{active + 1}/{imgs.length}</span>
           <div className="gallery-thumbs">
             {imgs.map((src, i) => (
-              <button key={src} type="button" className={i === active ? "on" : ""} onClick={() => goTo(i)} aria-label={`Show photo ${i + 1}`}>
+              <button key={src} type="button" className={i === active ? "on" : ""} onClick={() => api?.scrollTo(i)} aria-label={`Show photo ${i + 1} of ${imgs.length}`} aria-current={i === active ? "true" : undefined}>
                 <ProductImage src={src} alt="" />
               </button>
             ))}
@@ -60,13 +62,34 @@ function Gallery({ product }) {
       )}
     </div>
   );
+});
+
+// The main button: says "Added" with a tick for a moment after it works.
+function AddButton({ state, soldOut, onClick, className = "", children }) {
+  const label = soldOut ? "Sold out" : state === "added" ? "Added" : children;
+  return (
+    <button type="button" className={`btn add-btn ${state === "added" ? "is-added" : ""} ${className}`} onClick={onClick} disabled={soldOut || state === "adding"}>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={label}
+          className="add-label"
+          initial={{ y: 14, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -14, opacity: 0 }}
+          transition={{ duration: .18 }}
+        >
+          {state === "added" && <CheckIcon />}{label}
+        </motion.span>
+      </AnimatePresence>
+    </button>
+  );
 }
 
 export default function ProductView({ id }) {
   const product = getProduct(id);
   const router = useRouter();
   const { add } = useCart();
-  const { show } = useUI();
+  const { addToBag, state } = useAddToBag();
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [sizeError, setSizeError] = useState(false);
@@ -74,6 +97,7 @@ export default function ProductView({ id }) {
   const [barVisible, setBarVisible] = useState(false);
   const sizesRef = useRef(null);
   const buyRef = useRef(null);
+  const mediaRef = useRef(null);
 
   // Switching colour brings the size along in the address (?size=42).
   // Keep it if this colour has that size in stock.
@@ -84,12 +108,12 @@ export default function ProductView({ id }) {
     setSizeError(false);
   }, [id]);
 
-  // The bottom bar appears once the main Add to cart button has scrolled away.
+  // The bottom bar appears once the main button has scrolled off the top.
+  // The huge bottom margin counts "below the screen" as in view, so even a
+  // fast fling past the button is caught.
   useEffect(() => {
     const el = buyRef.current;
     if (!el) return;
-    // The huge bottom margin means "below the screen" still counts as in view,
-    // so the bar only shows once the button has gone off the top, even after a fast fling.
     const io = new IntersectionObserver(([e]) => setBarVisible(!e.isIntersecting), { rootMargin: "0px 0px 100000px 0px" });
     io.observe(el);
     return () => io.disconnect();
@@ -110,7 +134,11 @@ export default function ProductView({ id }) {
     sizesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     return true;
   };
-  const addToCart = () => { if (needSize()) return; add(product.id, size, qty); show("cart"); };
+  const addIt = () => {
+    if (needSize()) return;
+    const from = mediaRef.current?.querySelector(".gallery-slide img") || mediaRef.current;
+    addToBag({ product, size, qty, from });
+  };
   const buyNow = () => { if (needSize()) return; add(product.id, size, qty); router.push("/checkout"); };
 
   return (
@@ -122,23 +150,25 @@ export default function ProductView({ id }) {
       </nav>
 
       <div className="pdp wrap">
-        <Gallery product={product} />
+        <Gallery product={product} ref={mediaRef} />
 
         <div className="pdp-info">
           <div className="pdp-head">
-            <p className="brand-line">{genderLabel[product.gender]}</p>
+            <p className="pdp-kind">{WHOSE[product.gender]} {TYPE[product.type]}</p>
             <h1 className="pdp-title">{product.name}</h1>
-            <Price product={product} className="pdp-price" />
+            <div className="pdp-price-row">
+              <Price product={product} className="pdp-price" />
+              {product.rating != null && <Stars value={product.rating} reviews={product.reviews} full />}
+            </div>
             {onSale(product) && <p className="save">You save {naira(product.compare_kobo - product.price_kobo)}</p>}
-            {product.rating != null && <Stars value={product.rating} reviews={product.reviews} showCount />}
           </div>
 
           <ColourPicker product={product} size={size} />
 
           <div className="size-pick" role="group" aria-labelledby="size-label" ref={sizesRef}>
             <div className="size-head">
-              <p className="opt-label" id="size-label">Size (EU){size ? <span>: {size}</span> : null}</p>
-              <button type="button" className="text-btn" onClick={() => setGuideOpen(true)}><RulerIcon /> Size guide</button>
+              <p className="opt-label" id="size-label">Size (EU){size ? <span>{size}</span> : null}</p>
+              <button type="button" className="text-btn" onClick={() => setGuideOpen(true)}><RulerIcon />Size guide</button>
             </div>
             <div className="size-grid">
               {sizeList(product).map(s => (
@@ -163,12 +193,12 @@ export default function ProductView({ id }) {
           )}
 
           <div className="buy-actions" ref={buyRef}>
-            <button type="button" className="btn full" onClick={addToCart} disabled={soldOut}>{soldOut ? "Sold out" : "Add to cart"}</button>
-            {!soldOut && <button type="button" className="btn outline full" onClick={buyNow}>Buy it now</button>}
+            <AddButton state={state} soldOut={soldOut} onClick={addIt} className="full">Add to bag</AddButton>
+            {!soldOut && <button type="button" className="btn outline full" onClick={buyNow}>Buy now</button>}
           </div>
 
           <ul className="pdp-perks">
-            <li><TruckIcon /><span>Delivered in Lagos in 1 to 2 working days. {nairaWhole(DELIVERY_FEE_KOBO)}, or free on orders from {nairaWhole(FREE_DELIVERY_FROM_KOBO)}.</span></li>
+            <li><DanfoIcon /><span>Delivered in Lagos in 1 to 2 working days. {nairaWhole(DELIVERY_FEE_KOBO)}, or free on orders from {nairaWhole(FREE_DELIVERY_FROM_KOBO)}.</span></li>
             <li><ReturnIcon /><span>Free returns within 7 days on unworn pairs.</span></li>
           </ul>
 
@@ -197,14 +227,14 @@ export default function ProductView({ id }) {
         </div>
       </div>
 
-      {related.length > 0 && <ProductRow id="related" tagline="Pairs that go well with this" title="You may also like" products={related} />}
+      {related.length > 0 && <ProductRow id="related" title="You may also like" products={related} />}
 
       <div className={`sticky-buy ${barVisible && !soldOut ? "show" : ""}`} aria-hidden={!(barVisible && !soldOut)}>
         <div className="sticky-info">
-          <span className="sticky-name">{product.name}</span>
+          <span className="sticky-name">{product.name}{size ? `, size ${size}` : ""}</span>
           <Price product={product} />
         </div>
-        <button type="button" className="btn" onClick={addToCart} tabIndex={barVisible && !soldOut ? 0 : -1}>{size ? "Add to cart" : "Choose size"}</button>
+        <AddButton state={state} soldOut={soldOut} onClick={addIt}>{size ? "Add to bag" : "Choose size"}</AddButton>
       </div>
 
       <SizeGuide open={guideOpen} onClose={() => setGuideOpen(false)} kids={product.gender === "kids"} />
