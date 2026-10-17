@@ -13,7 +13,11 @@ export default function ProductImage({ src, alt, className = "", priority = fals
     if (img && img.complete && img.naturalWidth === 0) setFailed(true);
   }, [src]);
 
-  if (failed) return <div className={`img-fallback ${className}`} role="img" aria-label={alt} />;
+  if (failed) {
+    return alt
+      ? <div className={`img-fallback ${className}`} role="img" aria-label={alt} />
+      : <div className={`img-fallback ${className}`} aria-hidden="true" />;
+  }
   return (
     <img
       ref={ref}

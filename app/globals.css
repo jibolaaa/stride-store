@@ -1,7 +1,7 @@
 /* STRIDE
    Black and white, with one colour: danfo yellow, kept for things that
-   matter (sale tags, your bag count, delivery). Narrow slanted headlines,
-   rounded buttons, everything left-aligned. Phone first: the base styles
+   matter (sale tags, your bag count, delivery). Bold, tightly spaced
+   headlines, rounded buttons, everything left-aligned. Phone first: the base styles
    are for phones and the media queries add room. */
 
 :root {

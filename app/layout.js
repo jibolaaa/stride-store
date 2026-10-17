@@ -1,17 +1,5 @@
 import "./globals.css";
 import localFont from "next/font/local";
-import MotionRoot from "../components/MotionRoot";
-import { UIProvider } from "../components/UIProvider";
-import { CartProvider } from "../components/CartProvider";
-import SmoothScroll from "../components/SmoothScroll";
-import AnnouncementBar from "../components/AnnouncementBar";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import MenuDrawer from "../components/MenuDrawer";
-import SearchOverlay from "../components/SearchOverlay";
-import CartDrawer from "../components/CartDrawer";
-import QuickAddSheet from "../components/QuickAddSheet";
-import Toast from "../components/Toast";
 
 // One font for everything: Instrument Sans, served from this site so
 // nothing waits on Google Fonts. It has a ₦ sign added (see README).
@@ -34,6 +22,7 @@ export const viewport = { themeColor: "#ffffff" };
 // and marks that JavaScript is on, so scroll reveals only hide text when they can show it again.
 const boot = `(function(){var d=document.documentElement;d.classList.add("js");try{var t=localStorage.getItem("stride_theme");d.dataset.theme=t==="dark"?"dark":"light"}catch(e){}})()`;
 
+// The shop (app/(store)) and the back office (app/office) each add their own frame.
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" className={instrument.variable} suppressHydrationWarning>
@@ -42,22 +31,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <a href="#main" className="skip">Skip to content</a>
-        <MotionRoot>
-          <UIProvider>
-            <CartProvider>
-              <SmoothScroll />
-              <AnnouncementBar />
-              <Header />
-              <main id="main">{children}</main>
-              <Footer />
-              <MenuDrawer />
-              <SearchOverlay />
-              <CartDrawer />
-              <QuickAddSheet />
-              <Toast />
-            </CartProvider>
-          </UIProvider>
-        </MotionRoot>
+        {children}
       </body>
     </html>
   );
