@@ -47,14 +47,14 @@ export default async function LoginPage({ searchParams }) {
           <div className="ofc-form">
             <h1 className="ofc-title">Almost ready</h1>
             <p className="ofc-sub">The back office needs its database before anyone can sign in.</p>
-            <Link className="btn full" href="/office/setup">See how to connect it</Link>
+            <a className="btn full" href="/office/setup">See how to connect it</a>
           </div>
         )}
         {state === "not-set-up" && (
           <div className="ofc-form">
             <h1 className="ofc-title">Set up first</h1>
             <p className="ofc-sub">The database is connected but empty. Setup creates the demo shop in a few seconds.</p>
-            <Link className="btn full" href="/office/setup">Set up the back office</Link>
+            <a className="btn full" href="/office/setup">Set up the back office</a>
           </div>
         )}
         {state === "unreachable" && (

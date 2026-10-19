@@ -1,6 +1,7 @@
 "use client";
 // Creates the tables and the demo shop. Only works once.
-import Link from "next/link";
+// Links between the gate pages (setup, sign-in) are plain <a> tags: a full
+// page load, so the browser never shows a saved copy from before setup.
 import { useState } from "react";
 
 export default function SetupButton() {
@@ -23,7 +24,7 @@ export default function SetupButton() {
     return (
       <>
         <p className="ofc-ok" role="status">{state.text}</p>
-        <Link className="btn full" href="/office/login">Sign in</Link>
+        <a className="btn full" href="/office/login">Sign in</a>
       </>
     );
   }

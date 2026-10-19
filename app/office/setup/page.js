@@ -45,7 +45,7 @@ export default async function SetupPage() {
           <div className="ofc-form">
             <h1 className="ofc-title">All set</h1>
             <p className="ofc-sub">The back office is set up.</p>
-            <Link className="btn full" href="/office/login">Sign in</Link>
+            <a className="btn full" href="/office/login">Sign in</a>
           </div>
         )}
 
