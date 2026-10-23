@@ -2,11 +2,23 @@
 // Full-width photos you can swipe (Embla Carousel). It moves on by itself
 // every 6 seconds until you touch it. As you scroll down, the photo drifts
 // slower than the page and the words lift away (Motion).
+//
+// PREVIEW ONLY: four ways for the photos to move, with a switcher at the
+// bottom of the page so Ibrahim can pick one. The other three and the
+// switcher come out before this goes live.
 import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import Fade from "embla-carousel-fade";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+const MODES = [
+  { key: "slide", label: "Slide" },
+  { key: "fade", label: "Fade" },
+  { key: "zoom", label: "Zoom" },
+  { key: "still", label: "Still" }
+];
 
 const words = (text) => text.split(" ").map((w, i, all) => (
   <span key={i}>
@@ -17,9 +29,20 @@ const words = (text) => text.split(" ").map((w, i, all) => (
 export default function HeroSlider({ slides }) {
   const section = useRef(null);
   const reduce = useReducedMotion();
-  const autoplay = useRef(null);
-  if (!autoplay.current) autoplay.current = Autoplay({ delay: 6000, stopOnInteraction: true });
-  const [viewport, api] = useEmblaCarousel({ loop: true, duration: 34 }, reduce ? [] : [autoplay.current]);
+  const [mode, setMode] = useState("slide");
+  useEffect(() => {
+    let m = new URLSearchParams(window.location.search).get("motion");
+    try { m = m || localStorage.getItem("stride_motion"); } catch {}
+    if (MODES.some(x => x.key === m)) setMode(m);
+  }, []);
+  const plugins = useMemo(() => {
+    if (reduce) return [];
+    const list = [];
+    if (mode !== "still") list.push(Autoplay({ delay: 6000, stopOnInteraction: true }));
+    if (mode === "fade" || mode === "zoom") list.push(Fade());
+    return list;
+  }, [mode, reduce]);
+  const [viewport, api] = useEmblaCarousel({ loop: true, duration: mode === "slide" ? 34 : 32 }, plugins);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -39,12 +62,22 @@ export default function HeroSlider({ slides }) {
 
   const goTo = (i) => {
     setPaused(true);
-    autoplay.current?.stop();
+    api?.plugins()?.autoplay?.stop();
     api?.scrollTo(i);
   };
 
+  function pick(m) {
+    setMode(m);
+    setPaused(false);
+    try { localStorage.setItem("stride_motion", m); } catch {}
+    const url = new URL(window.location.href);
+    url.searchParams.set("motion", m);
+    window.history.replaceState(null, "", url);
+  }
+
   return (
-    <section ref={section} className={`hero ${paused || reduce ? "paused" : ""}`} aria-roledescription="carousel" aria-label="Featured">
+    <>
+    <section ref={section} className={`hero m-${mode} ${paused || reduce || mode === "still" ? "paused" : ""}`} aria-roledescription="carousel" aria-label="Featured">
       <div className="hero-viewport" ref={viewport}>
         <div className="hero-track">
           {slides.map((s, i) => (
@@ -82,5 +115,12 @@ export default function HeroSlider({ slides }) {
         </div>
       )}
     </section>
+    <div className="motion-lab" role="group" aria-label="Preview only: how the photos move">
+      <span>Photos</span>
+      {MODES.map(m => (
+        <button key={m.key} type="button" aria-pressed={mode === m.key} onClick={() => pick(m.key)}>{m.label}</button>
+      ))}
+    </div>
+    </>
   );
 }
